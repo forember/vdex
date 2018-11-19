@@ -1,4 +1,7 @@
-# Parallel Battles in Rust - Core/Host
+<h1>
+  <img alt="Professor Birch" src="https://tachibanatech.com/Birch_OD.png" />
+  Professor BIRCH: Parallel Battles in Rust - Core/Host
+</h1>
 
 This is a server (with accompanying client libraries) for simulating Pokémon battles. The goal is to support all *features* of Gen IV, with the stats/moves/Pokémon/etc. of Gen V. The server can also provide basic Pokédex information (base stats/movesets/etc.), but no art assets, display names, or flavortext. These are considered outside the scope of a simulator core, and are more likely to attract the ire of Nintendo.
 
