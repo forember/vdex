@@ -1,0 +1,3 @@
+[submodule "src/enum-repr"]
+	path = src/enum-repr
+	url = git@github.com:NighttimeDriver50000/enum-repr.git
