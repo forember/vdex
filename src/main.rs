@@ -4,6 +4,7 @@ mod abilities;
 mod items;
 mod moves;
 mod move_effects;
+mod move_meta;
 mod types;
 mod versions;
 
@@ -64,9 +65,11 @@ pub fn assert_sanity() {
     assert_eq!(items::Flags::Underground.repr(), 8);
     assert_eq!(items::FlingEffect::Flinch.repr(), 7);
     assert_eq!(items::Pockets::Key.repr(), 8);
+    assert_eq!(moves::BattleStyle::Support.repr(), 3);
     assert_eq!(moves::DamageClass::Special.repr(), 3);
     assert_eq!(moves::Target::EntireField.repr(), 12);
     move_effects::assert_sanity();
+    move_meta::assert_sanity();
     assert_eq!(Type::Dark.repr(), 17);
     assert_eq!(Version::White2.repr(), 22);
     assert_eq!(ContestType::Tough.repr(), 5);

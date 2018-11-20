@@ -2,6 +2,14 @@ use enum_repr::EnumRepr;
 
 #[EnumRepr(type = "u8", implicit = true)]
 #[derive(Debug, PartialEq)]
+pub enum BattleStyle {
+    Attack = 1,
+    Defense,
+    Support,
+}
+
+#[EnumRepr(type = "u8", implicit = true)]
+#[derive(Debug, PartialEq)]
 pub enum DamageClass {
     NonDamaging = 1,
     Physical,
