@@ -2,14 +2,15 @@ extern crate enum_repr;
 
 mod abilities;
 mod items;
+mod moves;
+mod move_effects;
 mod types;
+mod versions;
 
 use enum_repr::EnumRepr;
 use abilities::Ability;
-use items::Flags;
-use items::FlingEffect;
-use items::Pockets;
 use types::Type;
+use versions::Version;
 
 #[EnumRepr(type = "u8", implicit = true)]
 #[derive(Debug, PartialEq)]
@@ -58,14 +59,22 @@ pub enum Gender {
     Genderless,
 }
 
+pub fn assert_sanity() {
+    assert_eq!(Ability::Teravolt.repr(), 164);
+    assert_eq!(items::Flags::Underground.repr(), 8);
+    assert_eq!(items::FlingEffect::Flinch.repr(), 7);
+    assert_eq!(items::Pockets::Key.repr(), 8);
+    assert_eq!(moves::DamageClass::Special.repr(), 3);
+    assert_eq!(moves::Target::EntireField.repr(), 12);
+    move_effects::assert_sanity();
+    assert_eq!(Type::Dark.repr(), 17);
+    assert_eq!(Version::White2.repr(), 22);
+    assert_eq!(ContestType::Tough.repr(), 5);
+    assert_eq!(EggGroup::NoEggs.repr(), 15);
+    assert_eq!(EvolutionTrigger::Shed.repr(), 4);
+    assert_eq!(Gender::Genderless.repr(), 3);
+}
+
 fn main() {
-    println!("{} abilities", Ability::Teravolt.repr());
-    println!("{} item flags", Flags::Underground.repr());
-    println!("{} item fling effects", FlingEffect::Flinch.repr());
-    println!("{} item pockets", Pockets::Key.repr());
-    println!("{} types", Type::Dark.repr());
-    println!("{} contest types", ContestType::Tough.repr());
-    println!("{} egg groups", EggGroup::NoEggs.repr());
-    println!("{} evolution triggers", EvolutionTrigger::Shed.repr());
-    println!("{} genders", Gender::Genderless.repr());
+    assert_sanity();
 }
