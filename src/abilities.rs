@@ -1,6 +1,4 @@
-extern crate enum_repr;
-
-use self::enum_repr::EnumRepr;
+use enum_repr::EnumRepr;
 
 #[EnumRepr(type = "u8", implicit = true)]
 #[derive(Debug)]
