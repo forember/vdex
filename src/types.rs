@@ -1,7 +1,7 @@
 use enum_repr::EnumRepr;
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Type {
     Normal = 1,
     Fighting,
