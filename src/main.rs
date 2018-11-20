@@ -1,16 +1,7 @@
-extern crate enum_repr;
+mod abilities;
 
-use enum_repr::EnumRepr;
-
-#[EnumRepr(type = "u8")]
-#[derive(Debug)]
-pub enum Abilities {
-    Stench = 1,
-    Drizzle,
-    SpeedBoost,
-}
+use abilities::Ability;
 
 fn main() {
-    let ability = Abilities::from_repr(3);
-    println!("ability: {:?}", ability);
+    println!("{:?}", Ability::Teravolt.repr());
 }
