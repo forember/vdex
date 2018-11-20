@@ -18,6 +18,21 @@ pub enum DamageClass {
 
 #[EnumRepr(type = "u8", implicit = true)]
 #[derive(Debug, PartialEq)]
+pub enum LearnMethod {
+    LevelUp = 1,
+    Egg,
+    Tutor,
+    Machine,
+    StadiumSurfingPikachu,
+    LightBallEgg,
+    ColosseumPurification,
+    XDShadow,
+    XDPurification,
+    FormChange,
+}
+
+#[EnumRepr(type = "u8", implicit = true)]
+#[derive(Debug, PartialEq)]
 pub enum Target {
     SpecificMove = 1,
     SelectedPokemonReuseStolen,

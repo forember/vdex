@@ -67,6 +67,7 @@ pub fn assert_sanity() {
     assert_eq!(items::Pockets::Key.repr(), 8);
     assert_eq!(moves::BattleStyle::Support.repr(), 3);
     assert_eq!(moves::DamageClass::Special.repr(), 3);
+    assert_eq!(moves::LearnMethod::FormChange.repr(), 10);
     assert_eq!(moves::Target::EntireField.repr(), 12);
     move_effects::assert_sanity();
     move_meta::assert_sanity();
