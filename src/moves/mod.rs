@@ -1,3 +1,6 @@
+mod effects;
+mod meta;
+
 use enum_repr::EnumRepr;
 
 #[EnumRepr(type = "u8", implicit = true)]
@@ -46,4 +49,13 @@ pub enum Target {
     SelectedPokemon,
     AllOpponents,
     EntireField,
+}
+
+pub fn assert_sanity() {
+    assert_eq!(BattleStyle::Support.repr(), 3);
+    assert_eq!(DamageClass::Special.repr(), 3);
+    assert_eq!(LearnMethod::FormChange.repr(), 10);
+    assert_eq!(Target::EntireField.repr(), 12);
+    effects::assert_sanity();
+    meta::assert_sanity();
 }
