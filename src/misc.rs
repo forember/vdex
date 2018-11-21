@@ -47,9 +47,23 @@ pub enum Gender {
     Genderless,
 }
 
+#[EnumRepr(type = "u8", implicit = true)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+pub enum Stat {
+    HP = 1,
+    Attack,
+    Defense,
+    SpecialAttack,
+    SpecialDefense,
+    Speed,
+    Accuracy,
+    Evasion,
+}
+
 pub fn assert_sanity() {
     assert_eq!(ContestType::Tough.repr(), 5);
     assert_eq!(EggGroup::NoEggs.repr(), 15);
     assert_eq!(EvolutionTrigger::Shed.repr(), 4);
     assert_eq!(Gender::Genderless.repr(), 3);
+    assert_eq!(Stat::Evasion.repr(), 8);
 }
