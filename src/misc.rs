@@ -1,7 +1,7 @@
 use enum_repr::EnumRepr;
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum ContestType {
     Cool = 1,
     Beauty,
@@ -11,7 +11,7 @@ pub enum ContestType {
 }
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum EggGroup {
     Monster = 1,
     Water1,
@@ -31,7 +31,7 @@ pub enum EggGroup {
 }
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum EvolutionTrigger {
     LevelUp = 1,
     Trade,
@@ -40,7 +40,7 @@ pub enum EvolutionTrigger {
 }
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Gender {
     Female = 1,
     Male,

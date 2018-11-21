@@ -1,7 +1,7 @@
 use enum_repr::EnumRepr;
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Generation {
     I = 1,
     II,
@@ -11,7 +11,7 @@ pub enum Generation {
 }
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Version {
     Red = 1,
     Blue,
@@ -38,7 +38,7 @@ pub enum Version {
 }
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum VersionGroup {
     RedBlue = 1,
     Yellow,

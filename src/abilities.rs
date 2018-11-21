@@ -1,7 +1,7 @@
 use enum_repr::EnumRepr;
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Ability {
     Stench = 1,
     Drizzle,
@@ -167,4 +167,8 @@ pub enum Ability {
     VictoryStar,
     Turboblaze,
     Teravolt,
+}
+
+pub fn assert_sanity() {
+    assert_eq!(Ability::Teravolt.repr(), 164);
 }

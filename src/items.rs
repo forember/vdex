@@ -1,7 +1,7 @@
 use enum_repr::EnumRepr;
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Category {
     StatBoosts = 1,
     EffortDrop,
@@ -48,7 +48,7 @@ pub enum Category {
 }
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Flag {
     Countable = 1,
     Consumable,
@@ -61,7 +61,7 @@ pub enum Flag {
 }
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum FlingEffect {
     BadlyPoison = 1,
     Burn,
@@ -73,7 +73,7 @@ pub enum FlingEffect {
 }
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Pocket {
     Misc = 1,
     Medicine,
@@ -95,8 +95,7 @@ pub fn assert_sanity() {
 
 impl Category {
     pub fn pocket(&self) -> Pocket {
-        let x: u8 = self.repr();
-        match x {
+        match self.repr() {
             9 ... 19 | 24 | 32 | 35 | 36 | 42 => Pocket::Misc,
             26 ... 30 => Pocket::Medicine,
             33 | 34 | 39 => Pocket::Pokeballs,
@@ -105,7 +104,7 @@ impl Category {
             25 => Pocket::Mail,
             1 | 38 | 43 => Pocket::Battle,
             20 ... 23 | 40 | 41 => Pocket::Key,
-            _ => panic!("Invalid return from Category::repr!"),
+            _ => unreachable!(),
         }
     }
 }

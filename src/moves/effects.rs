@@ -1,7 +1,7 @@
 use enum_repr::EnumRepr;
 
 #[EnumRepr(type = "u16", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum MoveEffect {
     // Generic
     RegularDamage = 1,

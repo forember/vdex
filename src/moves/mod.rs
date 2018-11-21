@@ -4,7 +4,7 @@ mod meta;
 use enum_repr::EnumRepr;
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum BattleStyle {
     Attack = 1,
     Defense,
@@ -12,7 +12,7 @@ pub enum BattleStyle {
 }
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum DamageClass {
     NonDamaging = 1,
     Physical,
@@ -20,7 +20,7 @@ pub enum DamageClass {
 }
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum LearnMethod {
     LevelUp = 1,
     Egg,
@@ -35,7 +35,7 @@ pub enum LearnMethod {
 }
 
 #[EnumRepr(type = "u8", implicit = true)]
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Target {
     SpecificMove = 1,
     SelectedPokemonReuseStolen,
