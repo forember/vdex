@@ -15,7 +15,7 @@ pub enum Efficacy {
 #[EnumRepr(type = "u8", implicit = true)]
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub enum Type {
-    Normal,
+    Normal = 0,
     Fighting,
     Flying,
     Poison,
