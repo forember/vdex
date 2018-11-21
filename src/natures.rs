@@ -1,4 +1,5 @@
 use enum_repr::EnumRepr;
+use moves::BattleStyle;
 
 #[EnumRepr(type = "u8", implicit = true)]
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -169,4 +170,28 @@ impl Stat {
             _ => None,
         }
     }
+}
+
+pub struct HalfPalaceTable {
+    attack: [u8; 25],
+    defense: [u8; 25],
+}
+
+impl HalfPalaceTable {
+    pub fn pick_style<R: rand::Rng>(
+        &self, rng: &mut R, nature: Nature
+    ) -> BattleStyle {
+        let i = nature.repr() as usize;
+        let a = self.attack[i];
+        match rng.gen_range(0, 100) {
+            x if x < a => BattleStyle::Attack,
+            x if x < a + self.defense[i] => BattleStyle::Defense,
+            _ => BattleStyle::Support,
+        }
+    }
+}
+
+pub struct PalaceTable {
+    low: HalfPalaceTable,
+    high: HalfPalaceTable,
 }

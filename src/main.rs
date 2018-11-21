@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 extern crate enum_repr;
+extern crate rand;
 
 mod abilities;
 mod items;
