@@ -1,6 +1,7 @@
 use enum_repr::EnumRepr;
 use std::error;
 use std::fmt;
+use std::num;
 
 #[EnumRepr(type = "i8", implicit = true)]
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -36,7 +37,7 @@ pub enum Type {
 #[derive(Debug)]
 pub enum Error {
     CsvError(csv::Error),
-    ParseIntError(std::num::ParseIntError),
+    ParseIntError(num::ParseIntError),
     InvalidEfficacy(u8),
     InvalidType(u8),
 }
@@ -66,6 +67,18 @@ impl error::Error for Error {
     }
 }
 
+impl From<csv::Error> for Error {
+    fn from(error: csv::Error) -> Self {
+        Error::CsvError(error)
+    }
+}
+
+impl From<num::ParseIntError> for Error {
+    fn from(error: num::ParseIntError) -> Self {
+        Error::ParseIntError(error)
+    }
+}
+
 pub struct EfficacyTable {
     table: [Efficacy; 17*17],
 }
@@ -82,29 +95,28 @@ impl EfficacyTable {
     }
 
     fn parse_type(field: &str) -> Result<Type> {
-        field.parse().or_else(|e| Err(Error::ParseIntError(e)))
-            .and_then(|x| Type::from_repr(x - 1).ok_or(Error::InvalidType(x)))
+        let x = field.parse()?;
+        Type::from_repr(x - 1).ok_or(Error::InvalidType(x))
     }
 
     fn parse_efficacy(field: &str) -> Result<Efficacy> {
-        field.parse().or_else(|e| Err(Error::ParseIntError(e)))
-            .and_then(|x| match x {
-                0 => Ok(Efficacy::Not),
-                50 => Ok(Efficacy::NotVery),
-                100 => Ok(Efficacy::Regular),
-                200 => Ok(Efficacy::Super),
-                _ => Err(Error::InvalidEfficacy(x)),
-            })
+        let x = field.parse()?;
+        match x {
+            0 => Ok(Efficacy::Not),
+            50 => Ok(Efficacy::NotVery),
+            100 => Ok(Efficacy::Regular),
+            200 => Ok(Efficacy::Super),
+            _ => Err(Error::InvalidEfficacy(x)),
+        }
     }
 
     pub fn from_csv_file(path: &std::path::Path) -> Result<EfficacyTable> {
         let mut table = EfficacyTable {
             table: [Efficacy::Regular; 17*17],
         };
-        let mut reader = csv::Reader::from_path(path)
-            .or_else(|e| Err(Error::CsvError(e)))?;
+        let mut reader = csv::Reader::from_path(path)?;
         for result in reader.records() {
-            let record = result.or_else(|e| Err(Error::CsvError(e)))?;
+            let record = result?;
             let damage = EfficacyTable::parse_type(&record[0])?;
             let target = EfficacyTable::parse_type(&record[1])?;
             let efficacy = EfficacyTable::parse_efficacy(&record[2])?;
