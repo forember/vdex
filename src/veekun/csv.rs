@@ -6,11 +6,11 @@ use std::str::FromStr;
 use veekun;
 
 #[derive(Debug)]
-pub enum Error {
+pub enum Error<'e> {
     Veekun {
         line: u64,
         field: usize,
-        debug: Box<Debug>,
+        debug: Box<Debug + 'e>,
     },
     RecordLength {
         line: u64,
@@ -18,13 +18,13 @@ pub enum Error {
     Csv(csv::Error),
 }
 
-impl From<csv::Error> for Error {
+impl<'e> From<csv::Error> for Error<'e> {
     fn from(error: csv::Error) -> Self {
         Error::Csv(error)
     }
 }
 
-impl Display for Error {
+impl<'e> Display for Error<'e> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             Error::Veekun { line, field, debug } => {
@@ -40,7 +40,7 @@ impl Display for Error {
     }
 }
 
-impl StdError for Error {
+impl<'e> StdError for Error<'e> {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
             Error::Csv(error) => Some(error),
@@ -49,12 +49,12 @@ impl StdError for Error {
     }
 }
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<'e, T> = std::result::Result<T, Error<'e>>;
 
-pub fn from_field<V, T: veekun::FromVeekun<V>>(
+pub fn from_field<'e, V, T: veekun::FromVeekun<V>>(
     record: &csv::StringRecord, index: usize
-) -> Result<T>
-    where V: FromStr + Debug + 'static, <V as FromStr>::Err: Debug
+) -> Result<'e, T>
+    where V: FromStr + Debug + Copy + 'e, <V as FromStr>::Err: Debug
 {
     let line = match record.position() {
         Some(p) => p.line(),
@@ -69,10 +69,10 @@ pub fn from_field<V, T: veekun::FromVeekun<V>>(
 }
 
 pub trait FromCsv: Sized {
-    fn from_csv_file(path: &Path) -> Result<Self> {
+    fn from_csv_file<'e>(path: &Path) -> Result<'e, Self> {
         let mut reader = csv::Reader::from_path(path)?;
         Self::from_csv(&mut reader)
     }
 
-    fn from_csv<R: Read>(reader: &mut csv::Reader<R>) -> Result<Self>;
+    fn from_csv<'e, R: Read>(reader: &mut csv::Reader<R>) -> Result<'e, Self>;
 }

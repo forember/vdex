@@ -1,5 +1,6 @@
 use enum_repr::EnumRepr;
 use moves::BattleStyle;
+use veekun;
 
 #[EnumRepr(type = "u8", implicit = true)]
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -77,8 +78,8 @@ impl std::convert::From<Flavor> for ContestType {
     }
 }
 
-impl ContestType {
-    pub fn from_veekun(id: u8) -> Option<Self> {
+impl veekun::FromVeekun<u8> for ContestType {
+    fn from_veekun(id: u8) -> Option<Self> {
         match id {
             1 => Some(ContestType::Cool),
             2 => Some(ContestType::Beauty),
@@ -96,8 +97,8 @@ impl std::convert::From<ContestType> for Flavor {
     }
 }
 
-impl Flavor {
-    pub fn from_veekun(id: u8) -> Option<Self> {
+impl veekun::FromVeekun<u8> for Flavor {
+    fn from_veekun(id: u8) -> Option<Self> {
         ContestType::from_veekun(id).and_then(|t| Some(Flavor::from(t)))
     }
 }
@@ -123,8 +124,10 @@ impl Nature {
         }
         Stat::from_repr((x % 5) as i8).or_else(|| unreachable!())
     }
+}
 
-    pub fn from_veekun(id: u8) -> Option<Self> {
+impl veekun::FromVeekun<u8> for Nature {
+    fn from_veekun(id: u8) -> Option<Self> {
         match id {
             1 => Some(Nature::Hardy),
             2 => Some(Nature::Bold),
@@ -156,8 +159,8 @@ impl Nature {
     }
 }
 
-impl Stat {
-    pub fn from_veekun(id: u8) -> Option<Self> {
+impl veekun::FromVeekun<u8> for Stat {
+    fn from_veekun(id: u8) -> Option<Self> {
         match id {
             1 => Some(Stat::HP),
             2 => Some(Stat::Attack),

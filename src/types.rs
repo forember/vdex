@@ -38,7 +38,7 @@ pub fn assert_sanity() {
 }
 
 impl veekun::FromVeekun<u8> for Efficacy {
-    fn from_veekun(value: &u8) -> Option<Self> {
+    fn from_veekun(value: u8) -> Option<Self> {
         match value {
             0 => Some(Efficacy::Not),
             50 => Some(Efficacy::NotVery),
@@ -50,7 +50,7 @@ impl veekun::FromVeekun<u8> for Efficacy {
 }
 
 impl veekun::FromVeekun<u8> for Type {
-    fn from_veekun(value: &u8) -> Option<Self> {
+    fn from_veekun(value: u8) -> Option<Self> {
         value.checked_sub(1).and_then(Type::from_repr)
     }
 }
@@ -70,9 +70,9 @@ impl EfficacyTable {
 }
 
 impl veekun::csv::FromCsv for EfficacyTable {
-    fn from_csv<R: std::io::Read>(
+    fn from_csv<'e, R: std::io::Read>(
         reader: &mut csv::Reader<R>
-    ) -> veekun::csv::Result<Self> {
+    ) -> veekun::csv::Result<'e, Self> {
         let mut table = EfficacyTable {
             table: [Efficacy::Regular; 17*17],
         };

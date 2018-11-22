@@ -38,12 +38,12 @@ impl<V> StdError for Error<V>
 }
 
 pub trait FromVeekun<V>: Sized
-    where V: FromStr + Debug, <V as FromStr>::Err: Debug
+    where V: FromStr + Debug + Copy, <V as FromStr>::Err: Debug
 {
-    fn from_veekun(value: &V) -> Option<Self>;
+    fn from_veekun(value: V) -> Option<Self>;
 
     fn from_veekun_field(field: &str) -> Result<Self, Error<V>> {
         let value = field.parse().or_else(|e| Err(Error::Parse(e)))?;
-        Self::from_veekun(&value).ok_or(Error::Value(value))
+        Self::from_veekun(value).ok_or(Error::Value(value))
     }
 }
