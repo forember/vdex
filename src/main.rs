@@ -5,7 +5,7 @@ extern crate rand;
 
 mod abilities;
 mod items;
-mod misc;
+mod pokemon;
 mod moves;
 mod natures;
 mod types;
@@ -18,9 +18,9 @@ use veekun::csv::FromCsv;
 pub fn assert_sanity() {
     abilities::assert_sanity();
     items::assert_sanity();
-    misc::assert_sanity();
     moves::assert_sanity();
     natures::assert_sanity();
+    pokemon::assert_sanity();
     types::assert_sanity();
     versions::assert_sanity();
 }
