@@ -1,4 +1,4 @@
-use enum_repr::EnumRepr;
+use enums::*;
 
 #[EnumRepr(type = "u8", implicit = true)]
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]

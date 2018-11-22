@@ -1,4 +1,4 @@
-use enum_repr::EnumRepr;
+use enums::*;
 use veekun;
 
 #[EnumRepr(type = "i8", implicit = true)]

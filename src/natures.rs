@@ -1,4 +1,4 @@
-use enum_repr::EnumRepr;
+use enums::*;
 use moves::BattleStyle;
 use veekun;
 

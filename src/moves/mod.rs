@@ -1,7 +1,7 @@
 mod effects;
 mod meta;
 
-use enum_repr::EnumRepr;
+use enums::*;
 use veekun;
 
 #[EnumRepr(type = "u8", implicit = true)]

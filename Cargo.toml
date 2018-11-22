@@ -7,3 +7,6 @@ authors = ["Chris McKinney <ntd5@tachibanatech.com>"]
 csv = "1"
 enum-repr = { path = "enum-repr" }
 rand = "0.6"
+
+[dev-dependencies]
+libc = "^0.2.42"
