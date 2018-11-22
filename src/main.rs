@@ -12,6 +12,7 @@ mod types;
 mod veekun;
 mod versions;
 
+use std::path::Path;
 use veekun::csv::FromCsv;
 
 pub fn assert_sanity() {
@@ -41,8 +42,11 @@ fn _eprint_efficacy_table(table: &types::EfficacyTable) {
 
 fn main() {
     assert_sanity();
-    let efficacy_path = std::path::Path::new("veekun/type_efficacy.csv");
+    let efficacy_path = Path::new("veekun/type_efficacy.csv");
     let _efficacy_table = types::EfficacyTable::from_csv_file(efficacy_path)
         .expect("Failed to load efficacy table CSV!");
-    _eprint_efficacy_table(&_efficacy_table);
+    //_eprint_efficacy_table(&_efficacy_table);
+    let palace_path = Path::new("veekun/nature_battle_style_preferences.csv");
+    let _palace_path = natures::PalaceTable::from_csv_file(palace_path)
+        .expect("Failed to load palace table CSV!");
 }

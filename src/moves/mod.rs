@@ -2,6 +2,7 @@ mod effects;
 mod meta;
 
 use enum_repr::EnumRepr;
+use veekun;
 
 #[EnumRepr(type = "u8", implicit = true)]
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -58,4 +59,28 @@ pub fn assert_sanity() {
     assert_eq!(Target::EntireField.repr(), 12);
     effects::assert_sanity();
     meta::assert_sanity();
+}
+
+impl veekun::FromVeekun<u8> for BattleStyle {
+    fn from_veekun(value: u8) -> Option<Self> {
+        Self::from_repr(value)
+    }
+}
+
+impl veekun::FromVeekun<u8> for DamageClass {
+    fn from_veekun(value: u8) -> Option<Self> {
+        Self::from_repr(value)
+    }
+}
+
+impl veekun::FromVeekun<u8> for LearnMethod {
+    fn from_veekun(value: u8) -> Option<Self> {
+        Self::from_repr(value)
+    }
+}
+
+impl veekun::FromVeekun<u8> for Target {
+    fn from_veekun(value: u8) -> Option<Self> {
+        Self::from_repr(value)
+    }
 }

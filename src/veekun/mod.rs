@@ -47,3 +47,11 @@ pub trait FromVeekun<V>: Sized
         Self::from_veekun(value).ok_or(Error::Value(value))
     }
 }
+
+impl<V> FromVeekun<V> for V
+    where V: FromStr + Debug + Copy, <V as FromStr>::Err: Debug
+{
+    fn from_veekun(value: V) -> Option<Self> {
+        Some(value)
+    }
+}

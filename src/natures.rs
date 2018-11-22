@@ -198,3 +198,58 @@ pub struct PalaceTable {
     low: HalfPalaceTable,
     high: HalfPalaceTable,
 }
+
+impl veekun::csv::FromCsv for PalaceTable {
+    fn from_csv<'e, R: std::io::Read>(
+        reader: &mut csv::Reader<R>
+    ) -> veekun::csv::Result<'e, Self> {
+        let mut table = PalaceTable {
+            low: HalfPalaceTable { attack: [0; 25], defense: [0; 25] },
+            high: HalfPalaceTable { attack: [0; 25], defense: [0; 25] },
+        };
+        for result in reader.records() {
+            let record = result?;
+            let nature: Nature = veekun::csv::from_field(&record, 0)?;
+            let nature_id = nature.repr() as usize;
+            let style = veekun::csv::from_field(&record, 1)?;
+            let low = veekun::csv::from_field(&record, 2)?;
+            let high = veekun::csv::from_field(&record, 3)?;
+            match style {
+                BattleStyle::Attack => {
+                    table.low.attack[nature_id] = low;
+                    table.high.attack[nature_id] = high;
+                },
+                BattleStyle::Defense => {
+                    table.low.defense[nature_id] = low;
+                    table.high.defense[nature_id] = high;
+                },
+                BattleStyle::Support => {
+                    let low_attack = table.low.attack[nature_id];
+                    let high_attack = table.high.attack[nature_id];
+                    let low_defense = table.low.defense[nature_id];
+                    let high_defense = table.high.defense[nature_id];
+                    let line = match record.position() {
+                        Some(p) => p.line(),
+                        None => 0,
+                    };
+                    let debug = "Preferences must sum to 100.";
+                    if low_attack + low_defense + low != 100 {
+                        return Err(veekun::csv::Error::Veekun {
+                            line: line,
+                            field: 2,
+                            debug: Box::new(debug),
+                        });
+                    }
+                    if high_attack + high_defense + high != 100 {
+                        return Err(veekun::csv::Error::Veekun {
+                            line: line,
+                            field: 3,
+                            debug: Box::new(debug),
+                        });
+                    }
+                }
+            }
+        }
+        Ok(table)
+    }
+}

@@ -12,10 +12,10 @@ pub enum Error<'e> {
         field: usize,
         debug: Box<Debug + 'e>,
     },
+    Csv(csv::Error),
     RecordLength {
         line: u64,
     },
-    Csv(csv::Error),
 }
 
 impl<'e> From<csv::Error> for Error<'e> {
@@ -30,11 +30,11 @@ impl<'e> Display for Error<'e> {
             Error::Veekun { line, field, debug } => {
                 write!(f, "Error on line {} field {}: {:?}", line, field, debug)
             },
-            Error::RecordLength { line } => {
-                write!(f, "Record on line {} too short.", line)
-            },
             Error::Csv(error) => {
                 write!(f, "{}", error)
+            },
+            Error::RecordLength { line } => {
+                write!(f, "Record on line {} too short.", line)
             },
         }
     }
