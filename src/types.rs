@@ -56,7 +56,7 @@ impl veekun::FromVeekun<u8> for Type {
 }
 
 pub struct EfficacyTable {
-    table: [Efficacy; 17*17],
+    pub table: [Efficacy; 17*17],
 }
 
 impl EfficacyTable {

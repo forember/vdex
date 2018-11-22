@@ -21,6 +21,7 @@ mod tests {
     use types;
     use versions;
 
+    use enums::*;
     use std::path::Path;
     use veekun::csv::FromCsv;
 
@@ -54,22 +55,24 @@ mod tests {
     }
     
     #[test]
-    #[cfg(palace)]
+    #[ignore]
     fn print_palace() {
         let table = load_palace();
         for nature_id in 0..25 {
             let nature = natures::Nature::from_repr(nature_id).unwrap();
-            let high_attack = table.high.attack[nature_id];
-            let high_defense = table.high.defense[nature_id];
-            let low_attack = table.low.attack[nature_id];
-            let low_defense = table.low.defense[nature_id];
-            println!("{:?}: high({:?}%, {:?}%), low({:?}%, {:?}%)",
+            let i = nature_id as usize;
+            let high_attack = table.high.attack[i];
+            let high_defense = table.high.defense[i];
+            let low_attack = table.low.attack[i];
+            let low_defense = table.low.defense[i];
+            eprintln!("{:?}: high({:?}%, {:?}%), low({:?}%, {:?}%)",
                 nature, high_attack, high_defense, low_attack, low_defense);
         }
+        panic!("Output from this test must be manually inspected.");
     }
 
     #[test]
-    #[cfg(efficacy)]
+    #[ignore]
     fn print_efficacy() {
         let table = load_efficacy();
         for damage_id in 0..17 {
@@ -80,9 +83,10 @@ mod tests {
                 if efficacy == types::Efficacy::Regular {
                     continue;
                 }
-                println!("{:?} is {:?} effective against {:?}.",
+                eprintln!("{:?} is {:?} effective against {:?}.",
                     damage, efficacy, target);
             }
         }
+        panic!("Output from this test must be manually inspected.");
     }
 }

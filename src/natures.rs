@@ -176,8 +176,8 @@ impl veekun::FromVeekun<u8> for Stat {
 }
 
 pub struct HalfPalaceTable {
-    attack: [u8; 25],
-    defense: [u8; 25],
+    pub attack: [u8; 25],
+    pub defense: [u8; 25],
 }
 
 impl HalfPalaceTable {
@@ -195,8 +195,8 @@ impl HalfPalaceTable {
 }
 
 pub struct PalaceTable {
-    low: HalfPalaceTable,
-    high: HalfPalaceTable,
+    pub low: HalfPalaceTable,
+    pub high: HalfPalaceTable,
 }
 
 impl veekun::csv::FromCsv for PalaceTable {
