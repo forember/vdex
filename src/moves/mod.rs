@@ -4,24 +4,21 @@ mod meta;
 use enums::*;
 use veekun;
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum BattleStyle {
     Attack = 1,
     Defense,
     Support,
-}
+});
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum DamageClass {
     NonDamaging = 1,
     Physical,
     Special,
-}
+});
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum LearnMethod {
     LevelUp = 1,
     Egg,
@@ -33,10 +30,9 @@ pub enum LearnMethod {
     XDShadow,
     XDPurification,
     FormChange,
-}
+});
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum Target {
     SpecificMove = 1,
     SelectedPokemonReuseStolen,
@@ -50,7 +46,7 @@ pub enum Target {
     SelectedPokemon,
     AllOpponents,
     EntireField,
-}
+});
 
 pub fn assert_sanity() {
     assert_eq!(BattleStyle::Support.repr(), 3);

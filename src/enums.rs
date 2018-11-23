@@ -4,12 +4,14 @@
 //! Generate enum repr conversions compatible with type aliases.
 //!
 //! Generate with `#[EnumRepr(type = "TYPE")]`.
+//! The enum must also implement `Copy`.
 //!
 //! Functions generated are
-//! ```ignore
-//! fn repr(&self) -> EnumReprType
-//! fn from_repr(x: EnumReprType) -> Option<Self>
-//! ```
+//!
+//! > `fn repr(self) -> EnumReprType`
+//! >
+//! > `fn from_repr(x: EnumReprType) -> Option<Self>`
+//!
 //! The real enum discriminant is usually forced to be `#[repr(isize)]`.
 //! If `u*` or `i*` types are used for the discriminant, the actual enum
 //! representation is made to be `#[repr(that_type_specified)]`.
@@ -27,17 +29,17 @@
 //! extern crate libc;
 //!
 //! use libc::*;
-//!
-//! use pbirch::enums::{Enum, EnumRepr};
-//!
+//! 
+//! use pbirch::enums::*;
+//! 
 //! #[EnumRepr(type = "c_int")]
-//! #[derive(Debug, PartialEq)]
+//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 //! pub enum IpProto {
 //!     IP = IPPROTO_IP,
 //!     IPv6 = IPPROTO_IPV6,
 //!     // …
 //! }
-//!
+//! 
 //! fn main() {
 //!     assert_eq!(IpProto::IP.repr(), IPPROTO_IP);
 //!     assert_eq!(IpProto::from_repr(IPPROTO_IPV6), Some(IpProto::IPv6));
@@ -51,17 +53,17 @@
 //! #
 //! # use libc::*;
 //! #
-//! # use pbirch::enums::{Enum, EnumRepr};
+//! # use pbirch::enums::*;
 //! #
 //! #[EnumRepr(type = "c_int")]
-//! # #[derive(Debug, Eq, Hash, PartialEq)]
+//! #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 //! pub enum InetDomain {
 //!     Inet = 2,
 //!     // …
 //! }
 //!
 //! #[EnumRepr(type = "c_int")]
-//! # #[derive(Debug, Eq, Hash, PartialEq)]
+//! #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 //! pub enum SocketType {
 //!     Stream = 1,
 //!     // …
@@ -82,13 +84,13 @@
 //! #
 //! # use libc::*;
 //! #
-//! # use pbirch::enums::{Enum, EnumRepr};
+//! # use pbirch::enums::*;
 //! #
 //! // compatible with documentation and other attributes
-//!
+//! 
 //! /// Represents a layer 3 network protocol.
 //! #[EnumRepr(type = "c_int")]
-//! #[derive(Debug, PartialEq)]
+//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 //! pub enum IpProto {
 //!     IP = IPPROTO_IP,
 //!     IPv6 = IPPROTO_IPV6,
@@ -105,22 +107,40 @@
 //! #
 //! # use libc::*;
 //! #
-//! # use pbirch::enums::{Enum, EnumRepr};
+//! # use pbirch::enums::*;
 //! #
-//!
 //! #[EnumRepr(type = "c_int", implicit = true)]
-//! #[derive(Debug, PartialEq)]
+//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 //! pub enum Test {
 //!     A,
 //!     B,
 //!     C = 5,
 //!     D,
 //! }
-//!
+//! 
 //! fn main() {
 //!     assert_eq!(Test::B.repr(), 1);
 //!     assert_eq!(Test::from_repr(6), Some(Test::D));
 //!     assert!(Test::from_repr(2).is_none());
+//! }
+//! ```
+//!
+//! You can also use the `enum_repr!` macro:
+//! ```
+//! #[macro_use]
+//! extern crate pbirch;
+//!
+//! use pbirch::enums::*;
+//!
+//! enum_repr!("u8";
+//! pub enum Test {
+//!     A,
+//!     B = 3,
+//!     C,
+//! });
+//!
+//! fn main() {
+//!     assert_eq!(Test::C.repr(), 4);
 //! }
 //! ```
 //!
@@ -131,10 +151,10 @@
 //! #
 //! # use libc::*;
 //! #
-//! # use pbirch::enums::{Enum, EnumRepr};
+//! # use pbirch::enums::*;
 //! #
-//!
 //! #[EnumRepr(type = "c_int")]
+//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 //! pub enum Test {
 //!     A,
 //!     B = 3
@@ -148,9 +168,10 @@
 //! # #![deny(overflowing_literals)]
 //! # extern crate pbirch;
 //! #
-//! # use pbirch::enums::{Enum, EnumRepr};
+//! # use pbirch::enums::*;
 //! #
 //! #[EnumRepr(type = "u8", implicit = true)]
+//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 //! enum Test {
 //!     A = 1,
 //!     B,
@@ -166,9 +187,10 @@
 //! # #![deny(overflowing_literals)]
 //! # extern crate pbirch;
 //! #
-//! # use pbirch::enums::{Enum, EnumRepr};
+//! # use pbirch::enums::*;
 //! #
 //! #[EnumRepr(type = "u8")]
+//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 //! enum Test {
 //!     A = 256
 //! }
@@ -181,9 +203,10 @@
 //! # #![deny(overflowing_literals)]
 //! # extern crate pbirch;
 //! #
-//! # use pbirch::enums::{Enum, EnumRepr};
+//! # use pbirch::enums::*;
 //! #
 //! #[EnumRepr(type = "u8", implicit = true)]
+//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 //! enum Test {
 //!     A = 255,
 //!     B
@@ -197,11 +220,12 @@
 //! # #![deny(overflowing_literals)]
 //! # extern crate pbirch;
 //! #
-//! # use pbirch::enums::{Enum, EnumRepr};
+//! # use pbirch::enums::*;
 //! #
 //! const C: u16 = 256;
 //!
 //! #[EnumRepr(type = "u8")]
+//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 //! enum Test {
 //!     A = C
 //! }
@@ -215,10 +239,10 @@
 //! #
 //! # use std::mem::size_of;
 //! #
-//! # use pbirch::enums::{Enum, EnumRepr};
+//! # use pbirch::enums::*;
 //! #
 //! #[EnumRepr(type = "u8")]
-//! #[derive(Debug, PartialEq)]
+//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 //! enum Test {
 //!     A = 1
 //! }
@@ -230,8 +254,17 @@
 
 pub use enum_repr::EnumRepr;
 
-pub trait Enum<T: Copy>: Sized {
-    fn repr(&self) -> T;
+pub trait Enum<T: Copy> where Self: Sized + Copy {
+    fn repr(self) -> T;
 
     fn from_repr(x: T) -> Option<Self>;
+}
+
+#[macro_export]
+macro_rules! enum_repr {
+    ( $x:expr; $( $e:tt )* ) => {
+        #[EnumRepr(type = $x, implicit = true)]
+        #[derive(Copy, Clone, PartialEq, Eq, Debug)]
+        $( $e )*
+    };
 }

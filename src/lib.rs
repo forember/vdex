@@ -1,14 +1,17 @@
 extern crate enum_repr;
 extern crate rand;
 
-pub mod abilities;
+#[macro_use]
 pub mod enums;
+
+pub mod veekun;
+
+pub mod abilities;
 pub mod items;
 pub mod moves;
 pub mod natures;
 pub mod pokemon;
 pub mod types;
-pub mod veekun;
 pub mod versions;
 
 #[cfg(test)]
@@ -21,7 +24,7 @@ mod tests {
     use types;
     use versions;
 
-    use enums::*;
+    use enums::Enum;
     use std::path::Path;
     use veekun::csv::FromCsv;
 

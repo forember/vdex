@@ -2,28 +2,25 @@ use enums::*;
 use moves::BattleStyle;
 use veekun;
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum ContestType {
     Cool = 0,
     Tough,
     Cute,
     Beauty,
     Smart,
-}
+});
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum Flavor {
     Spicy = 0,
     Sour,
     Sweet,
     Dry,
     Bitter,
-}
+});
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum Nature {
     Hardy = 0,
     Lonely,
@@ -50,10 +47,9 @@ pub enum Nature {
     Sassy,
     Careful,
     Quirky,
-}
+});
 
-#[EnumRepr(type = "i8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("i8";
 pub enum Stat {
     HP = -1,
     Attack,
@@ -63,7 +59,7 @@ pub enum Stat {
     SpecialDefense,
     Accuracy,
     Evasion,
-}
+});
 
 pub fn assert_sanity() {
     assert_eq!(ContestType::Smart.repr(), 4);
@@ -104,7 +100,7 @@ impl veekun::FromVeekun<u8> for Flavor {
 }
 
 impl Nature {
-    pub fn disliked(&self) -> Option<Flavor> {
+    pub fn disliked(self) -> Option<Flavor> {
         let x = self.repr();
         if x % 6 == 0 {
             return None;
@@ -112,12 +108,12 @@ impl Nature {
         Flavor::from_repr(x / 5).or_else(|| unreachable!())
     }
 
-    pub fn increased(&self) -> Option<Stat> {
+    pub fn increased(self) -> Option<Stat> {
         self.disliked().and_then(|x|
             Stat::from_repr(x.repr() as i8).or_else(|| unreachable!()))
     }
 
-    pub fn decreased(&self) -> Option<Stat> {
+    pub fn decreased(self) -> Option<Stat> {
         let x = self.repr();
         if x % 6 == 0 {
             return None;

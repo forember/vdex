@@ -1,17 +1,15 @@
 use enums::*;
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum Generation {
     I = 1,
     II,
     III,
     IV,
     V,
-}
+});
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum Version {
     Red = 1,
     Blue,
@@ -35,10 +33,9 @@ pub enum Version {
     XD,
     Black2,
     White2,
-}
+});
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum VersionGroup {
     RedBlue = 1,
     Yellow,
@@ -54,7 +51,7 @@ pub enum VersionGroup {
     Colosseum,
     XD,
     BlackWhite2,
-}
+});
 
 pub fn assert_sanity() {
     assert_eq!(Generation::V.repr(), 5);
@@ -66,7 +63,7 @@ use versions::Version as V;
 use versions::VersionGroup as VG;
 
 impl Version {
-    pub fn group(&self) -> VersionGroup {
+    pub fn group(self) -> VersionGroup {
         match self {
             V::Red | V::Blue => VG::RedBlue,
             V::Yellow => VG::Yellow,
@@ -85,13 +82,13 @@ impl Version {
         }
     }
 
-    pub fn generation(&self) -> Generation {
+    pub fn generation(self) -> Generation {
         self.group().generation()
     }
 }
 
 impl VersionGroup {
-    pub fn generation(&self) -> Generation {
+    pub fn generation(self) -> Generation {
         match self {
             VG::RedBlue | VG::Yellow => Generation::I,
             VG::GoldSilver | VG::Crystal => Generation::II,

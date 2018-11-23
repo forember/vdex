@@ -1,7 +1,6 @@
 use enums::*;
 
-#[EnumRepr(type = "i8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("i8";
 pub enum Ailment {
     Unknown = -1,
     None,
@@ -23,10 +22,9 @@ pub enum Ailment {
     Embargo,
     PerishSong,
     Ingrain,
-}
+});
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum Category {
     Damage = 0,
     Ailment,
@@ -42,10 +40,9 @@ pub enum Category {
     FieldEffect,
     ForceSwitch,
     Unique,
-}
+});
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum Flag {
     Contact = 1,
     Charge,
@@ -61,7 +58,7 @@ pub enum Flag {
     Distance,
     Heal,
     Authentic,
-}
+});
 
 pub fn assert_sanity() {
     assert_eq!(Ailment::Nightmare.repr(), 9);

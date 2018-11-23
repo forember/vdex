@@ -1,7 +1,6 @@
 use enums::*;
 
-#[EnumRepr(type = "u16", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u16";
 pub enum MoveEffect {
     // Generic
     RegularDamage = 1,
@@ -336,7 +335,7 @@ pub enum MoveEffect {
     FusionFlare,
     FusionBolt,
     Hurricane,
-}
+});
 
 pub fn assert_sanity() {
     assert_eq!(MoveEffect::RaiseUserDefense.repr(), 12);

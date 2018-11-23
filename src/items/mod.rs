@@ -1,7 +1,6 @@
 use enums::*;
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum Category {
     StatBoosts = 1,
     EffortDrop,
@@ -45,10 +44,9 @@ pub enum Category {
     DataCards,
     Jewels,
     MiracleShooter,
-}
+});
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum Flag {
     Countable = 1,
     Consumable,
@@ -58,10 +56,9 @@ pub enum Flag {
     HoldablePassive,
     HoldableActive,
     Underground,
-}
+});
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum FlingEffect {
     BadlyPoison = 1,
     Burn,
@@ -70,10 +67,9 @@ pub enum FlingEffect {
     Paralyze,
     Poison,
     Flinch,
-}
+});
 
-#[EnumRepr(type = "u8", implicit = true)]
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+enum_repr!("u8";
 pub enum Pocket {
     Misc = 1,
     Medicine,
@@ -83,7 +79,7 @@ pub enum Pocket {
     Mail,
     Battle,
     Key,
-}
+});
 
 pub fn assert_sanity() {
     assert_eq!(Category::StatusCures.repr(), 30);
@@ -94,7 +90,7 @@ pub fn assert_sanity() {
 }
 
 impl Category {
-    pub fn pocket(&self) -> Pocket {
+    pub fn pocket(self) -> Pocket {
         match self.repr() {
             9 ... 19 | 24 | 32 | 35 | 36 | 42 => Pocket::Misc,
             26 ... 30 => Pocket::Medicine,
