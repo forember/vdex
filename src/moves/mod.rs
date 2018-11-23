@@ -1,5 +1,5 @@
-mod effects;
-mod meta;
+pub mod effects;
+pub mod meta;
 
 use enums::*;
 use veekun;
