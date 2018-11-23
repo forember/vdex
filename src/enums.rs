@@ -1,6 +1,9 @@
 //! **This is a modified (and incompatible) fork of**
 //! **[enum-repr](https://crates.io/crates/enum-repr).**
 //!
+//! A lot of the changes have sacrificed robustness for compilation speed,
+//! but if you run into trouble, you can always pass `fast = false`.
+//!
 //! Generate enum repr conversions compatible with type aliases.
 //!
 //! Generate with `#[EnumRepr(type = "TYPE")]`. The enum *must* implement
