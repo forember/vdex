@@ -3,8 +3,9 @@
 //!
 //! Generate enum repr conversions compatible with type aliases.
 //!
-//! Generate with `#[EnumRepr(type = "TYPE")]`.
-//! The enum must also implement `Copy`.
+//! Generate with `#[EnumRepr(type = "TYPE")]`. The enum *must* implement
+//! `Copy` and `Clone`, and it will derive `Copy`, `Clone`, `PartialEq`,
+//! `Eq`, and `Debug` unless `derive = false`.
 //!
 //! Functions generated are
 //!
@@ -33,7 +34,6 @@
 //! use pbirch::enums::*;
 //! 
 //! #[EnumRepr(type = "c_int")]
-//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 //! pub enum IpProto {
 //!     IP = IPPROTO_IP,
 //!     IPv6 = IPPROTO_IPV6,
@@ -56,14 +56,14 @@
 //! # use pbirch::enums::*;
 //! #
 //! #[EnumRepr(type = "c_int")]
-//! #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
+//! #[derive(Hash)]
 //! pub enum InetDomain {
 //!     Inet = 2,
 //!     // …
 //! }
 //!
 //! #[EnumRepr(type = "c_int")]
-//! #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
+//! #[derive(Hash)]
 //! pub enum SocketType {
 //!     Stream = 1,
 //!     // …
@@ -90,7 +90,6 @@
 //! 
 //! /// Represents a layer 3 network protocol.
 //! #[EnumRepr(type = "c_int")]
-//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 //! pub enum IpProto {
 //!     IP = IPPROTO_IP,
 //!     IPv6 = IPPROTO_IPV6,
@@ -100,7 +99,7 @@
 //! # fn main() {}
 //! ```
 //!
-//! Discriminants can be implicit if `implicit = true`:
+//! Discriminants can be implicit if `implicit = true` (default):
 //! ```
 //! # extern crate pbirch;
 //! # extern crate libc;
@@ -109,8 +108,7 @@
 //! #
 //! # use pbirch::enums::*;
 //! #
-//! #[EnumRepr(type = "c_int", implicit = true)]
-//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
+//! #[EnumRepr(type = "c_int")]
 //! pub enum Test {
 //!     A,
 //!     B,
@@ -125,26 +123,7 @@
 //! }
 //! ```
 //!
-//! You can also use the `enum_repr!` macro:
-//! ```
-//! #[macro_use]
-//! extern crate pbirch;
-//!
-//! use pbirch::enums::*;
-//!
-//! enum_repr!("u8";
-//! pub enum Test {
-//!     A,
-//!     B = 3,
-//!     C,
-//! });
-//!
-//! fn main() {
-//!     assert_eq!(Test::C.repr(), 4);
-//! }
-//! ```
-//!
-//! Using implicit discriminants without setting the flag is an error:
+//! Using implicit discriminants with the flag false is an error:
 //! ```compile_fail
 //! # extern crate pbirch;
 //! # extern crate libc;
@@ -153,8 +132,7 @@
 //! #
 //! # use pbirch::enums::*;
 //! #
-//! #[EnumRepr(type = "c_int")]
-//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
+//! #[EnumRepr(type = "c_int", implicit = false)]
 //! pub enum Test {
 //!     A,
 //!     B = 3
@@ -170,8 +148,7 @@
 //! #
 //! # use pbirch::enums::*;
 //! #
-//! #[EnumRepr(type = "u8", implicit = true)]
-//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
+//! #[EnumRepr(type = "u8")]
 //! enum Test {
 //!     A = 1,
 //!     B,
@@ -190,7 +167,6 @@
 //! # use pbirch::enums::*;
 //! #
 //! #[EnumRepr(type = "u8")]
-//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 //! enum Test {
 //!     A = 256
 //! }
@@ -205,8 +181,7 @@
 //! #
 //! # use pbirch::enums::*;
 //! #
-//! #[EnumRepr(type = "u8", implicit = true)]
-//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
+//! #[EnumRepr(type = "u8")]
 //! enum Test {
 //!     A = 255,
 //!     B
@@ -225,7 +200,6 @@
 //! const C: u16 = 256;
 //!
 //! #[EnumRepr(type = "u8")]
-//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 //! enum Test {
 //!     A = C
 //! }
@@ -242,13 +216,37 @@
 //! # use pbirch::enums::*;
 //! #
 //! #[EnumRepr(type = "u8")]
-//! #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 //! enum Test {
 //!     A = 1
 //! }
 //!
 //! fn main() {
 //!     assert_eq!(size_of::<u8>(), size_of::<Test>());
+//! }
+//! ```
+//!
+//! Prevent automatic derive with `derive = false`:
+//! ```
+//! # extern crate pbirch;
+//! #
+//! # use std::fmt;
+//! # use pbirch::enums::*;
+//! #
+//! #[EnumRepr(type = "u8", derive = false)]
+//! #[derive(Copy, Clone)]
+//! enum Test {
+//!     A,
+//!     B,
+//! }
+//!
+//! impl fmt::Debug for Test {
+//!     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+//!         write!(f, "Test({:?})", self.repr())
+//!     }
+//! }
+//!
+//! fn main() {
+//!     assert_eq!(format!("{:?}", Test::B), "Test(1)");
 //! }
 //! ```
 
@@ -263,8 +261,7 @@ pub trait Enum<T: Copy> where Self: Sized + Copy {
 #[macro_export]
 macro_rules! enum_repr {
     ( $x:expr; $( $e:tt )* ) => {
-        #[EnumRepr(type = $x, implicit = true)]
-        #[derive(Copy, Clone, PartialEq, Eq, Debug)]
+        #[EnumRepr(type = $x)]
         $( $e )*
     };
 }
