@@ -1,9 +1,7 @@
 extern crate enum_repr;
 extern crate rand;
 
-#[macro_use]
 pub mod enums;
-
 pub mod veekun;
 
 pub mod abilities;

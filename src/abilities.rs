@@ -1,6 +1,6 @@
 use enums::*;
 
-enum_repr!("u8";
+#[EnumRepr(type = "u8")]
 pub enum Ability {
     Stench = 1,
     Drizzle,
@@ -166,7 +166,7 @@ pub enum Ability {
     VictoryStar,
     Turboblaze,
     Teravolt,
-});
+}
 
 pub fn assert_sanity() {
     assert_eq!(Ability::Teravolt.repr(), 164);

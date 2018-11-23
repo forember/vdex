@@ -1,6 +1,6 @@
 use enums::*;
 
-enum_repr!("u8";
+#[EnumRepr(type = "u8")]
 pub enum Category {
     StatBoosts = 1,
     EffortDrop,
@@ -44,9 +44,9 @@ pub enum Category {
     DataCards,
     Jewels,
     MiracleShooter,
-});
+}
 
-enum_repr!("u8";
+#[EnumRepr(type = "u8")]
 pub enum Flag {
     Countable = 1,
     Consumable,
@@ -56,9 +56,9 @@ pub enum Flag {
     HoldablePassive,
     HoldableActive,
     Underground,
-});
+}
 
-enum_repr!("u8";
+#[EnumRepr(type = "u8")]
 pub enum FlingEffect {
     BadlyPoison = 1,
     Burn,
@@ -67,9 +67,9 @@ pub enum FlingEffect {
     Paralyze,
     Poison,
     Flinch,
-});
+}
 
-enum_repr!("u8";
+#[EnumRepr(type = "u8")]
 pub enum Pocket {
     Misc = 1,
     Medicine,
@@ -79,7 +79,7 @@ pub enum Pocket {
     Mail,
     Battle,
     Key,
-});
+}
 
 pub fn assert_sanity() {
     assert_eq!(Category::StatusCures.repr(), 30);

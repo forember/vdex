@@ -1,6 +1,6 @@
 use enums::*;
 
-enum_repr!("u8";
+#[EnumRepr(type = "u8")]
 pub enum EggGroup {
     Monster = 1,
     Water1,
@@ -17,22 +17,22 @@ pub enum EggGroup {
     Ditto,
     Dragon,
     NoEggs,
-});
+}
 
-enum_repr!("u8";
+#[EnumRepr(type = "u8")]
 pub enum EvolutionTrigger {
     LevelUp = 1,
     Trade,
     UseItem,
     Shed,
-});
+}
 
-enum_repr!("u8";
+#[EnumRepr(type = "u8")]
 pub enum Gender {
     Female = 1,
     Male,
     Genderless,
-});
+}
 
 pub fn assert_sanity() {
     assert_eq!(EggGroup::NoEggs.repr(), 15);

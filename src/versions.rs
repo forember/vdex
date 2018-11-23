@@ -1,15 +1,15 @@
 use enums::*;
 
-enum_repr!("u8";
+#[EnumRepr(type = "u8")]
 pub enum Generation {
     I = 1,
     II,
     III,
     IV,
     V,
-});
+}
 
-enum_repr!("u8";
+#[EnumRepr(type = "u8")]
 pub enum Version {
     Red = 1,
     Blue,
@@ -33,9 +33,9 @@ pub enum Version {
     XD,
     Black2,
     White2,
-});
+}
 
-enum_repr!("u8";
+#[EnumRepr(type = "u8")]
 pub enum VersionGroup {
     RedBlue = 1,
     Yellow,
@@ -51,7 +51,7 @@ pub enum VersionGroup {
     Colosseum,
     XD,
     BlackWhite2,
-});
+}
 
 pub fn assert_sanity() {
     assert_eq!(Generation::V.repr(), 5);

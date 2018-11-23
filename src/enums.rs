@@ -257,11 +257,3 @@ pub trait Enum<T: Copy> where Self: Sized + Copy {
 
     fn from_repr(x: T) -> Option<Self>;
 }
-
-#[macro_export]
-macro_rules! enum_repr {
-    ( $x:expr; $( $e:tt )* ) => {
-        #[EnumRepr(type = $x)]
-        $( $e )*
-    };
-}

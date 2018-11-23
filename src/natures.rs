@@ -2,25 +2,25 @@ use enums::*;
 use moves::BattleStyle;
 use veekun;
 
-enum_repr!("u8";
+#[EnumRepr(type = "u8")]
 pub enum ContestType {
     Cool = 0,
     Tough,
     Cute,
     Beauty,
     Smart,
-});
+}
 
-enum_repr!("u8";
+#[EnumRepr(type = "u8")]
 pub enum Flavor {
     Spicy = 0,
     Sour,
     Sweet,
     Dry,
     Bitter,
-});
+}
 
-enum_repr!("u8";
+#[EnumRepr(type = "u8")]
 pub enum Nature {
     Hardy = 0,
     Lonely,
@@ -47,9 +47,9 @@ pub enum Nature {
     Sassy,
     Careful,
     Quirky,
-});
+}
 
-enum_repr!("i8";
+#[EnumRepr(type = "i8")]
 pub enum Stat {
     HP = -1,
     Attack,
@@ -59,7 +59,7 @@ pub enum Stat {
     SpecialDefense,
     Accuracy,
     Evasion,
-});
+}
 
 pub fn assert_sanity() {
     assert_eq!(ContestType::Smart.repr(), 4);

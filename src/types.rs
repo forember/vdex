@@ -1,15 +1,15 @@
 use enums::*;
 use veekun;
 
-enum_repr!("i8";
+#[EnumRepr(type = "i8")]
 pub enum Efficacy {
     Not = -2,
     NotVery,
     Regular,
     Super,
-});
+}
 
-enum_repr!("u8";
+#[EnumRepr(type = "u8")]
 pub enum Type {
     Normal = 0,
     Fighting,
@@ -28,7 +28,7 @@ pub enum Type {
     Ice,
     Dragon,
     Dark,
-});
+}
 
 pub fn assert_sanity() {
     assert_eq!(Efficacy::Super.repr(), 1);
