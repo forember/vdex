@@ -1,6 +1,11 @@
+//! Natures, stats, and related data.
+
 use enums::*;
 use moves::BattleStyle;
-use veekun;
+use vcsv;
+use FromVeekun;
+
+pub const NATURE_COUNT: usize = 25;
 
 #[EnumRepr(type = "u8")]
 pub enum ContestType {
@@ -74,7 +79,7 @@ impl std::convert::From<Flavor> for ContestType {
     }
 }
 
-impl veekun::FromVeekun<u8> for ContestType {
+impl FromVeekun<u8> for ContestType {
     fn from_veekun(id: u8) -> Option<Self> {
         match id {
             1 => Some(ContestType::Cool),
@@ -93,7 +98,7 @@ impl std::convert::From<ContestType> for Flavor {
     }
 }
 
-impl veekun::FromVeekun<u8> for Flavor {
+impl FromVeekun<u8> for Flavor {
     fn from_veekun(id: u8) -> Option<Self> {
         ContestType::from_veekun(id).and_then(|t| Some(Flavor::from(t)))
     }
@@ -122,7 +127,7 @@ impl Nature {
     }
 }
 
-impl veekun::FromVeekun<u8> for Nature {
+impl FromVeekun<u8> for Nature {
     fn from_veekun(id: u8) -> Option<Self> {
         match id {
             1 => Some(Nature::Hardy),
@@ -155,7 +160,7 @@ impl veekun::FromVeekun<u8> for Nature {
     }
 }
 
-impl veekun::FromVeekun<u8> for Stat {
+impl FromVeekun<u8> for Stat {
     fn from_veekun(id: u8) -> Option<Self> {
         match id {
             1 => Some(Stat::HP),
@@ -172,8 +177,8 @@ impl veekun::FromVeekun<u8> for Stat {
 }
 
 pub struct HalfPalaceTable {
-    pub attack: [u8; 25],
-    pub defense: [u8; 25],
+    pub attack: [u8; NATURE_COUNT],
+    pub defense: [u8; NATURE_COUNT],
 }
 
 impl HalfPalaceTable {
@@ -195,21 +200,27 @@ pub struct PalaceTable {
     pub high: HalfPalaceTable,
 }
 
-impl veekun::csv::FromCsv for PalaceTable {
+impl vcsv::FromCsv for PalaceTable {
     fn from_csv<'e, R: std::io::Read>(
         reader: &mut csv::Reader<R>
-    ) -> veekun::csv::Result<'e, Self> {
+    ) -> vcsv::Result<'e, Self> {
         let mut table = PalaceTable {
-            low: HalfPalaceTable { attack: [0; 25], defense: [0; 25] },
-            high: HalfPalaceTable { attack: [0; 25], defense: [0; 25] },
+            low: HalfPalaceTable {
+                attack: [0; NATURE_COUNT],
+                defense: [0; NATURE_COUNT],
+            },
+            high: HalfPalaceTable {
+                attack: [0; NATURE_COUNT],
+                defense: [0; NATURE_COUNT],
+            },
         };
         for result in reader.records() {
             let record = result?;
-            let nature: Nature = veekun::csv::from_field(&record, 0)?;
+            let nature: Nature = vcsv::from_field(&record, 0)?;
             let nature_id = nature.repr() as usize;
-            let style = veekun::csv::from_field(&record, 1)?;
-            let low = veekun::csv::from_field(&record, 2)?;
-            let high = veekun::csv::from_field(&record, 3)?;
+            let style = vcsv::from_field(&record, 1)?;
+            let low = vcsv::from_field(&record, 2)?;
+            let high = vcsv::from_field(&record, 3)?;
             match style {
                 BattleStyle::Attack => {
                     table.low.attack[nature_id] = low;
@@ -230,15 +241,15 @@ impl veekun::csv::FromCsv for PalaceTable {
                     };
                     let debug = "Preferences must sum to 100.";
                     if low_attack + low_defense + low != 100 {
-                        return Err(veekun::csv::Error::Veekun {
-                            line: line,
+                        return Err(vcsv::Error::Veekun {
+                            line: Some(line),
                             field: 2,
                             debug: Box::new(debug),
                         });
                     }
                     if high_attack + high_defense + high != 100 {
-                        return Err(veekun::csv::Error::Veekun {
-                            line: line,
+                        return Err(vcsv::Error::Veekun {
+                            line: Some(line),
                             field: 3,
                             debug: Box::new(debug),
                         });

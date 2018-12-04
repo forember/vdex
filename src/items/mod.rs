@@ -1,3 +1,5 @@
+pub mod berries;
+
 use enums::*;
 
 #[EnumRepr(type = "u8")]

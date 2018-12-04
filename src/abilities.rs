@@ -1,3 +1,5 @@
+//! Abilities and battle hooks for their effects.
+
 use enums::*;
 
 #[EnumRepr(type = "u8")]

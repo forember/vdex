@@ -1,3 +1,5 @@
+//! Game versions and generations.
+
 use enums::*;
 
 #[EnumRepr(type = "u8")]

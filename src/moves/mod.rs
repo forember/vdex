@@ -2,7 +2,7 @@ pub mod effects;
 pub mod meta;
 
 use enums::*;
-use veekun;
+use FromVeekun;
 
 #[EnumRepr(type = "u8")]
 pub enum BattleStyle {
@@ -57,25 +57,25 @@ pub fn assert_sanity() {
     meta::assert_sanity();
 }
 
-impl veekun::FromVeekun<u8> for BattleStyle {
+impl FromVeekun<u8> for BattleStyle {
     fn from_veekun(value: u8) -> Option<Self> {
         Self::from_repr(value)
     }
 }
 
-impl veekun::FromVeekun<u8> for DamageClass {
+impl FromVeekun<u8> for DamageClass {
     fn from_veekun(value: u8) -> Option<Self> {
         Self::from_repr(value)
     }
 }
 
-impl veekun::FromVeekun<u8> for LearnMethod {
+impl FromVeekun<u8> for LearnMethod {
     fn from_veekun(value: u8) -> Option<Self> {
         Self::from_repr(value)
     }
 }
 
-impl veekun::FromVeekun<u8> for Target {
+impl FromVeekun<u8> for Target {
     fn from_veekun(value: u8) -> Option<Self> {
         Self::from_repr(value)
     }

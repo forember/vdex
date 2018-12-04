@@ -255,8 +255,13 @@
 
 pub use enum_repr::EnumRepr;
 
+/// All of the pbirch C-style enums implement this trait, which allows for easy
+/// conversion between the underlying integer representation and the enum type.
 pub trait Enum<T: Copy> where Self: Sized + Copy {
+    /// Returns the underlying representation of the enum value.
     fn repr(self) -> T;
 
+    /// Returns the enum value corresponding to the passed representation, or
+    /// `None` if no such enum value exists.
     fn from_repr(x: T) -> Option<Self>;
 }

@@ -12,6 +12,11 @@ pub mod pokemon;
 pub mod types;
 pub mod versions;
 
+pub use enums::Enum;
+pub use veekun::csv::FromCsv;
+use veekun::csv as vcsv;
+use veekun::repr::FromVeekun;
+
 #[cfg(test)]
 mod tests {
     use abilities;
@@ -22,9 +27,7 @@ mod tests {
     use types;
     use versions;
 
-    use enums::Enum;
     use std::path::Path;
-    use veekun::csv::FromCsv;
 
     #[test]
     fn assert_sanity() {

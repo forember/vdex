@@ -1,5 +1,10 @@
+//! Types and type efficacy.
+
 use enums::*;
-use veekun;
+use vcsv;
+use FromVeekun;
+
+pub const TYPE_COUNT: usize = 17;
 
 #[EnumRepr(type = "i8")]
 pub enum Efficacy {
@@ -35,7 +40,7 @@ pub fn assert_sanity() {
     assert_eq!(Type::Dark.repr(), 16);
 }
 
-impl veekun::FromVeekun<u8> for Efficacy {
+impl FromVeekun<u8> for Efficacy {
     fn from_veekun(value: u8) -> Option<Self> {
         match value {
             0 => Some(Efficacy::Not),
@@ -47,14 +52,14 @@ impl veekun::FromVeekun<u8> for Efficacy {
     }
 }
 
-impl veekun::FromVeekun<u8> for Type {
+impl FromVeekun<u8> for Type {
     fn from_veekun(value: u8) -> Option<Self> {
         value.checked_sub(1).and_then(Type::from_repr)
     }
 }
 
 pub struct EfficacyTable {
-    pub table: [Efficacy; 17*17],
+    pub table: [Efficacy; TYPE_COUNT*TYPE_COUNT],
 }
 
 impl EfficacyTable {
@@ -63,22 +68,22 @@ impl EfficacyTable {
     }
 
     pub fn index(damage: Type, target: Type) -> usize {
-        ((damage.repr() as usize) * 17) + (target.repr() as usize)
+        ((damage.repr() as usize) * TYPE_COUNT) + (target.repr() as usize)
     }
 }
 
-impl veekun::csv::FromCsv for EfficacyTable {
+impl vcsv::FromCsv for EfficacyTable {
     fn from_csv<'e, R: std::io::Read>(
         reader: &mut csv::Reader<R>
-    ) -> veekun::csv::Result<'e, Self> {
+    ) -> vcsv::Result<'e, Self> {
         let mut table = EfficacyTable {
-            table: [Efficacy::Regular; 17*17],
+            table: [Efficacy::Regular; TYPE_COUNT*TYPE_COUNT],
         };
         for result in reader.records() {
             let record = result?;
-            let damage = veekun::csv::from_field(&record, 0)?;
-            let target = veekun::csv::from_field(&record, 1)?;
-            let efficacy = veekun::csv::from_field(&record, 2)?;
+            let damage = vcsv::from_field(&record, 0)?;
+            let target = vcsv::from_field(&record, 1)?;
+            let efficacy = vcsv::from_field(&record, 2)?;
             table.table[EfficacyTable::index(damage, target)] = efficacy;
         }
         Ok(table)
