@@ -27,6 +27,9 @@ mod tests {
     use types;
     use versions;
 
+    use Enum;
+    use FromCsv;
+
     use std::path::Path;
 
     #[test]
@@ -38,6 +41,20 @@ mod tests {
         pokemon::assert_sanity();
         types::assert_sanity();
         versions::assert_sanity();
+    }
+
+    fn load_berry_flavors() -> items::berries::BerryFlavorTable {
+        let path = Path::new("veekun/berry_flavors.csv");
+        items::berries::BerryFlavorTable::from_csv_file(path)
+            .expect("Failed to load berry flavor CSV!")
+    }
+
+    fn load_berries() -> items::berries::BerryTable {
+        let path = Path::new("veekun/berries.csv");
+        let mut table = items::berries::BerryTable::from_csv_file(path)
+            .expect("Failed to load berry table CSV!");
+        table.set_flavors(&load_berry_flavors());
+        table
     }
 
     fn load_palace() -> natures::PalaceTable {
@@ -54,8 +71,19 @@ mod tests {
     
     #[test]
     fn load_all() {
+        load_berries();
         load_palace();
         load_efficacy();
+    }
+
+    #[test]
+    #[ignore]
+    fn print_berries() {
+        let table = load_berries();
+        for berry in table.table.into_iter() {
+            eprintln!("{:?}", berry);
+        }
+        panic!("Output from this test must be manually inspected.");
     }
     
     #[test]

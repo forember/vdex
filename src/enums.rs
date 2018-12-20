@@ -257,7 +257,13 @@ pub use enum_repr::EnumRepr;
 
 /// All of the pbirch C-style enums implement this trait, which allows for easy
 /// conversion between the underlying integer representation and the enum type.
-pub trait Enum<T: Copy> where Self: Sized + Copy {
+pub trait Enum<T: Copy> where Self: 'static + Sized + Copy {
+    /// The total number of enum values.
+    const COUNT: usize;
+
+    /// All the enum values.
+    const VALUES: &'static [Self];
+
     /// Returns the underlying representation of the enum value.
     fn repr(self) -> T;
 
