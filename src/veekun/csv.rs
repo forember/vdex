@@ -113,3 +113,22 @@ pub trait FromCsv: Sized {
     /// Loads the object from an open CSV file.
     fn from_csv<'e, R: Read>(reader: &mut csv::Reader<R>) -> Result<'e, Self>;
 }
+
+pub trait FromCsvIncremental: Sized { 
+    fn from_empty_csv() -> Self;
+
+    fn load_csv_record<'e>(
+        &mut self, record: csv::StringRecord
+    ) -> Result<'e, ()>;
+}
+
+impl<T: FromCsvIncremental> FromCsv for T {
+    fn from_csv<'e, R: Read>(reader: &mut csv::Reader<R>) -> Result<'e, T> {
+        let mut state = T::from_empty_csv();
+        for result in reader.records() {
+            let record = result?;
+            state.load_csv_record(record)?;
+        }
+        Ok(state)
+    }
+}

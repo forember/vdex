@@ -1,4 +1,5 @@
 pub mod berries;
+pub mod flags;
 
 use enums::*;
 
@@ -49,18 +50,6 @@ pub enum Category {
 }
 
 #[EnumRepr(type = "u8")]
-pub enum Flag {
-    Countable = 1,
-    Consumable,
-    UsableOverworld,
-    UsableInBattle,
-    Holdable,
-    HoldablePassive,
-    HoldableActive,
-    Underground,
-}
-
-#[EnumRepr(type = "u8")]
 pub enum FlingEffect {
     BadlyPoison = 1,
     Burn,
@@ -86,7 +75,6 @@ pub enum Pocket {
 pub fn assert_sanity() {
     assert_eq!(Category::StatusCures.repr(), 30);
     assert_eq!(Category::MiracleShooter.repr(), 43);
-    assert_eq!(Flag::Underground.repr(), 8);
     assert_eq!(FlingEffect::Flinch.repr(), 7);
     assert_eq!(Pocket::Key.repr(), 8);
 }

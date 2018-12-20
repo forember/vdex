@@ -1,5 +1,6 @@
+#[macro_use]
+extern crate bitflags;
 extern crate enum_repr;
-extern crate rand;
 
 pub mod enums;
 pub mod veekun;
@@ -80,7 +81,7 @@ mod tests {
     #[ignore]
     fn print_berries() {
         let table = load_berries();
-        for berry in table.table.into_iter() {
+        for berry in table.0.into_iter() {
             eprintln!("{:?}", berry);
         }
         panic!("Output from this test must be manually inspected.");

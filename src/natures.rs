@@ -200,11 +200,9 @@ pub struct PalaceTable {
     pub high: HalfPalaceTable,
 }
 
-impl vcsv::FromCsv for PalaceTable {
-    fn from_csv<'e, R: std::io::Read>(
-        reader: &mut csv::Reader<R>
-    ) -> vcsv::Result<'e, Self> {
-        let mut table = PalaceTable {
+impl vcsv::FromCsvIncremental for PalaceTable {
+    fn from_empty_csv() -> Self {
+        PalaceTable {
             low: HalfPalaceTable {
                 attack: [0; NATURE_COUNT],
                 defense: [0; NATURE_COUNT],
@@ -213,50 +211,52 @@ impl vcsv::FromCsv for PalaceTable {
                 attack: [0; NATURE_COUNT],
                 defense: [0; NATURE_COUNT],
             },
-        };
-        for result in reader.records() {
-            let record = result?;
-            let nature: Nature = vcsv::from_field(&record, 0)?;
-            let nature_id = nature.repr() as usize;
-            let style = vcsv::from_field(&record, 1)?;
-            let low = vcsv::from_field(&record, 2)?;
-            let high = vcsv::from_field(&record, 3)?;
-            match style {
-                BattleStyle::Attack => {
-                    table.low.attack[nature_id] = low;
-                    table.high.attack[nature_id] = high;
-                },
-                BattleStyle::Defense => {
-                    table.low.defense[nature_id] = low;
-                    table.high.defense[nature_id] = high;
-                },
-                BattleStyle::Support => {
-                    let low_attack = table.low.attack[nature_id];
-                    let high_attack = table.high.attack[nature_id];
-                    let low_defense = table.low.defense[nature_id];
-                    let high_defense = table.high.defense[nature_id];
-                    let line = match record.position() {
-                        Some(p) => p.line(),
-                        None => 0,
-                    };
-                    let debug = "Preferences must sum to 100.";
-                    if low_attack + low_defense + low != 100 {
-                        return Err(vcsv::Error::Veekun {
-                            line: Some(line),
-                            field: 2,
-                            debug: Box::new(debug),
-                        });
-                    }
-                    if high_attack + high_defense + high != 100 {
-                        return Err(vcsv::Error::Veekun {
-                            line: Some(line),
-                            field: 3,
-                            debug: Box::new(debug),
-                        });
-                    }
+        }
+    }
+
+    fn load_csv_record<'e>(
+        &mut self, record: csv::StringRecord
+    ) -> vcsv::Result<'e, ()> {
+        let nature: Nature = vcsv::from_field(&record, 0)?;
+        let nature_id = nature.repr() as usize;
+        let style = vcsv::from_field(&record, 1)?;
+        let low = vcsv::from_field(&record, 2)?;
+        let high = vcsv::from_field(&record, 3)?;
+        match style {
+            BattleStyle::Attack => {
+                self.low.attack[nature_id] = low;
+                self.high.attack[nature_id] = high;
+            },
+            BattleStyle::Defense => {
+                self.low.defense[nature_id] = low;
+                self.high.defense[nature_id] = high;
+            },
+            BattleStyle::Support => {
+                let low_attack = self.low.attack[nature_id];
+                let high_attack = self.high.attack[nature_id];
+                let low_defense = self.low.defense[nature_id];
+                let high_defense = self.high.defense[nature_id];
+                let line = match record.position() {
+                    Some(p) => p.line(),
+                    None => 0,
+                };
+                let debug = "Preferences must sum to 100.";
+                if low_attack + low_defense + low != 100 {
+                    return Err(vcsv::Error::Veekun {
+                        line: Some(line),
+                        field: 2,
+                        debug: Box::new(debug),
+                    });
+                }
+                if high_attack + high_defense + high != 100 {
+                    return Err(vcsv::Error::Veekun {
+                        line: Some(line),
+                        field: 3,
+                        debug: Box::new(debug),
+                    });
                 }
             }
         }
-        Ok(table)
+        Ok(())
     }
 }

@@ -1,4 +1,4 @@
-use enums::Enum;
+use Enum;
 use natures::{ContestType, Flavor};
 use types::Type;
 use vcsv;
@@ -20,50 +20,60 @@ pub struct Berry {
     pub flavor: Option<Flavor>,
 }
 
-pub struct BerryTable {
-    pub table: [Berry; BERRY_COUNT],
-}
+pub struct BerryTable(pub [Berry; BERRY_COUNT]);
 
 impl BerryTable {
     pub fn set_flavors(&mut self, flavors: &BerryFlavorTable) -> () {
         for i in 0..BERRY_COUNT {
             let mut max_flavor = None;
             let mut max_value = 0;
-            for flavor in Flavor::VALUES {
-                let value = flavors.flavor(*flavor)[i];
+            for &flavor in Flavor::VALUES {
+                let value = flavors[flavor][i];
                 if value > max_value {
-                    max_flavor = Some(*flavor);
+                    max_flavor = Some(flavor);
                     max_value = value;
                 } else if value == max_value {
                     max_flavor = None;
                 }
             }
-            self.table[i].flavor = max_flavor;
+            self.0[i].flavor = max_flavor;
         }
     }
 }
 
-impl vcsv::FromCsv for BerryTable {
-    fn from_csv<'e, R: std::io::Read>(
-        reader: &mut csv::Reader<R>
-    ) -> vcsv::Result<'e, Self> {
-        let mut table = BerryTable {
-            table: [NULL_BERRY; BERRY_COUNT],
+impl std::ops::Index<usize> for BerryTable {
+    type Output = Berry;
+
+    fn index<'a>(&'a self, index: usize) -> &'a Berry {
+        self.0.index(index)
+    }
+}
+
+impl std::ops::IndexMut<usize> for BerryTable {
+    fn index_mut<'a>(&'a mut self, index: usize) -> &'a mut Berry {
+        self.0.index_mut(index)
+    }
+}
+
+impl vcsv::FromCsvIncremental for BerryTable {
+    fn from_empty_csv() -> Self {
+        BerryTable([NULL_BERRY; BERRY_COUNT])
+    }
+    
+    fn load_csv_record<'e>(
+        &mut self, record: csv::StringRecord
+    ) -> vcsv::Result<'e, ()> {
+        let id: usize = vcsv::from_field(&record, 0)?;
+        let item_id = vcsv::from_field(&record, 1)?;
+        let natural_gift_power = vcsv::from_field(&record, 3)?;
+        let natural_gift_type = vcsv::from_field(&record, 4)?;
+        self[id - 1] = Berry {
+            item_id,
+            natural_gift_power,
+            natural_gift_type,
+            flavor: None,
         };
-        for result in reader.records() {
-            let record = result?;
-            let id: usize = vcsv::from_field(&record, 0)?;
-            let item_id = vcsv::from_field(&record, 1)?;
-            let natural_gift_power = vcsv::from_field(&record, 3)?;
-            let natural_gift_type = vcsv::from_field(&record, 4)?;
-            table.table[id - 1] = Berry {
-                item_id,
-                natural_gift_power,
-                natural_gift_type,
-                flavor: None,
-            };
-        }
-        Ok(table)
+        Ok(())
     }
 }
 
@@ -75,9 +85,11 @@ pub struct BerryFlavorTable {
     pub bitter: [u8; BERRY_COUNT],
 }
 
-impl BerryFlavorTable {
-    pub fn flavor(&self, flavor: Flavor) -> &[u8; BERRY_COUNT] {
-        match flavor {
+impl std::ops::Index<Flavor> for BerryFlavorTable {
+    type Output = [u8; BERRY_COUNT];
+
+    fn index<'a>(&'a self, index: Flavor) -> &'a [u8; BERRY_COUNT] {
+        match index {
             Flavor::Spicy => &self.spicy,
             Flavor::Sour => &self.sour,
             Flavor::Sweet => &self.sweet,
@@ -85,9 +97,11 @@ impl BerryFlavorTable {
             Flavor::Bitter => &self.bitter,
         }
     }
+}
 
-    pub fn flavor_mut(&mut self, flavor: Flavor) -> &mut [u8; BERRY_COUNT] {
-        match flavor {
+impl std::ops::IndexMut<Flavor> for BerryFlavorTable {
+    fn index_mut<'a>(&'a mut self, index: Flavor) -> &'a mut [u8; BERRY_COUNT] {
+        match index {
             Flavor::Spicy => &mut self.spicy,
             Flavor::Sour => &mut self.sour,
             Flavor::Sweet => &mut self.sweet,
@@ -97,25 +111,25 @@ impl BerryFlavorTable {
     }
 }
 
-impl vcsv::FromCsv for BerryFlavorTable {
-    fn from_csv<'e, R: std::io::Read>(
-        reader: &mut csv::Reader<R>
-    ) -> vcsv::Result<'e, Self> {
-        let mut table = BerryFlavorTable {
+impl vcsv::FromCsvIncremental for BerryFlavorTable {
+    fn from_empty_csv() -> Self {
+        BerryFlavorTable {
             spicy: [0; BERRY_COUNT],
             sour: [0; BERRY_COUNT],
             sweet: [0; BERRY_COUNT],
             dry: [0; BERRY_COUNT],
             bitter: [0; BERRY_COUNT],
-        };
-        for result in reader.records() {
-            let record = result?;
-            let id: usize = vcsv::from_field(&record, 0)?;
-            let contest_type: ContestType = vcsv::from_field(&record, 1)?;
-            let value = vcsv::from_field(&record, 2)?;
-            let mut array = table.flavor_mut(Flavor::from(contest_type));
-            array[id - 1] = value;
         }
-        Ok(table)
+    }
+
+    fn load_csv_record<'e>(
+        &mut self, record: csv::StringRecord
+    ) -> vcsv::Result<'e, ()> {
+        let id: usize = vcsv::from_field(&record, 0)?;
+        let contest_type: ContestType = vcsv::from_field(&record, 1)?;
+        let flavor = Flavor::from(contest_type);
+        let value = vcsv::from_field(&record, 2)?;
+        self[flavor][id - 1] = value;
+        Ok(())
     }
 }

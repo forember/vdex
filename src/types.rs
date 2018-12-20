@@ -1,8 +1,8 @@
 //! Types and type efficacy.
 
 use enums::*;
-use vcsv;
 use FromVeekun;
+use vcsv;
 
 pub const TYPE_COUNT: usize = 17;
 
@@ -58,13 +58,11 @@ impl FromVeekun<u8> for Type {
     }
 }
 
-pub struct EfficacyTable {
-    pub table: [Efficacy; TYPE_COUNT*TYPE_COUNT],
-}
+pub struct EfficacyTable(pub [Efficacy; TYPE_COUNT*TYPE_COUNT]);
 
 impl EfficacyTable {
     pub fn efficacy(&self, damage: Type, target: Type) -> Efficacy {
-        return self.table[EfficacyTable::index(damage, target)];
+        return self.0[EfficacyTable::index(damage, target)];
     }
 
     pub fn index(damage: Type, target: Type) -> usize {
@@ -72,20 +70,18 @@ impl EfficacyTable {
     }
 }
 
-impl vcsv::FromCsv for EfficacyTable {
-    fn from_csv<'e, R: std::io::Read>(
-        reader: &mut csv::Reader<R>
-    ) -> vcsv::Result<'e, Self> {
-        let mut table = EfficacyTable {
-            table: [Efficacy::Regular; TYPE_COUNT*TYPE_COUNT],
-        };
-        for result in reader.records() {
-            let record = result?;
-            let damage = vcsv::from_field(&record, 0)?;
-            let target = vcsv::from_field(&record, 1)?;
-            let efficacy = vcsv::from_field(&record, 2)?;
-            table.table[EfficacyTable::index(damage, target)] = efficacy;
-        }
-        Ok(table)
+impl vcsv::FromCsvIncremental for EfficacyTable {
+    fn from_empty_csv() -> Self {
+        EfficacyTable([Efficacy::Regular; TYPE_COUNT*TYPE_COUNT])
+    }
+
+    fn load_csv_record<'e>(
+        &mut self, record: csv::StringRecord
+    ) -> vcsv::Result<'e, ()> {
+        let damage = vcsv::from_field(&record, 0)?;
+        let target = vcsv::from_field(&record, 1)?;
+        let efficacy = vcsv::from_field(&record, 2)?;
+        self.0[EfficacyTable::index(damage, target)] = efficacy;
+        Ok(())
     }
 }
