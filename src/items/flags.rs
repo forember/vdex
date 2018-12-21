@@ -46,7 +46,8 @@ impl vcsv::FromCsvIncremental for FlagTable {
     ) -> vcsv::Result<'e, ()> {
         let id = vcsv::from_field(&record, 0)?;
         let flag = vcsv::from_field(&record, 1)?;
-        self.0.insert(id, flag);
+        let new_flags = self.0.get(&id).map_or(Flags::empty(), |v| *v) | flag;
+        self.0.insert(id, new_flags);
         Ok(())
     }
 }

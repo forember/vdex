@@ -36,7 +36,7 @@ impl BerryTable {
                     max_flavor = None;
                 }
             }
-            self.0[i].flavor = max_flavor;
+            self[i].flavor = max_flavor;
         }
     }
 }

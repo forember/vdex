@@ -1,7 +1,12 @@
 pub mod berries;
 pub mod flags;
 
+use std::collections::HashMap;
 use enums::*;
+use FromVeekun;
+use vcsv;
+use veekun;
+use veekun::repr::VeekunOption;
 
 #[EnumRepr(type = "u8")]
 pub enum Category {
@@ -51,7 +56,8 @@ pub enum Category {
 
 #[EnumRepr(type = "u8")]
 pub enum FlingEffect {
-    BadlyPoison = 1,
+    None = 0,
+    BadlyPoison,
     Burn,
     ActivateBerry,
     ActivateHerb,
@@ -92,5 +98,89 @@ impl Category {
             20 ... 23 | 40 | 41 => Pocket::Key,
             _ => unreachable!(),
         }
+    }
+}
+
+impl FromVeekun for Category {
+    type Intermediate = u8;
+
+    fn from_veekun(value: u8) -> Option<Self> {
+        Category::from_repr(value)
+    }
+}
+
+impl FromVeekun for FlingEffect {
+    type Intermediate = u8;
+
+    fn from_veekun(value: u8) -> Option<Self> {
+        FlingEffect::from_repr(value)
+    }
+}
+
+#[derive(Debug)]
+pub struct Item<'a> {
+    pub id: u16,
+    pub name: String,
+    pub category: Category,
+    pub cost: u16,
+    pub fling_power: Option<u8>,
+    pub fling_effect: FlingEffect,
+    pub flags: flags::Flags,
+    pub berry: Option<&'a berries::Berry>,
+}
+
+pub struct ItemTable<'a>(pub HashMap<u16, Item<'a>>);
+
+impl<'a> ItemTable<'a> {
+    pub fn set_flags(&mut self, flag_table: &flags::FlagTable) {
+        for (id, item) in self.0.iter_mut() {
+            item.flags = flag_table.0.get(id)
+                .map_or(flags::Flags::empty(), |v| *v);
+        }
+    }
+
+    pub fn link_berries(&mut self, berry_table: &'a berries::BerryTable) {
+        for berry in berry_table.0.iter() {
+            if let Some(item) = self.0.get_mut(&berry.item_id) {
+                item.berry = Some(berry);
+            }
+        }
+    }
+}
+
+impl<'a> std::ops::Index<u16> for ItemTable<'a> {
+    type Output = Item<'a>;
+
+    fn index<'b>(&'b self, index: u16) -> &'b Item<'a> {
+        self.0.index(&index)
+    }
+}
+
+impl<'a> vcsv::FromCsvIncremental for ItemTable<'a> {
+    fn from_empty_csv() -> Self {
+        ItemTable(HashMap::new())
+    }
+
+    fn load_csv_record<'e>(
+        &mut self, record: csv::StringRecord
+    ) -> vcsv::Result<'e, ()> {
+        let id = vcsv::from_field(&record, 0)?;
+        let name = veekun::to_pascal_case(vcsv::get_field(&record, 1)?);
+        let category = vcsv::from_field(&record, 2)?;
+        let cost = vcsv::from_field(&record, 3)?;
+        let fling_power: VeekunOption<_> = vcsv::from_field(&record, 4)?;
+        let fling_effect
+            = vcsv::from_option_field(&record, 5, FlingEffect::None)?;
+        self.0.insert(id, Item {
+            id,
+            name,
+            category,
+            cost,
+            fling_power: fling_power.into(),
+            fling_effect,
+            flags: flags::Flags::empty(),
+            berry: None,
+        });
+        Ok(())
     }
 }

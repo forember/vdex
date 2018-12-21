@@ -84,19 +84,48 @@ impl<'e> StdError for Error<'e> {
 
 pub type Result<'e, T> = std::result::Result<T, Error<'e>>;
 
+pub fn get_line(record: &csv::StringRecord) -> Option<u64> {
+    record.position().map(csv::Position::line)
+}
+
+pub fn get_field<'e>(
+    record: &csv::StringRecord, index: usize
+) -> Result<'e, &str> {
+    record.get(index).ok_or_else(|| Error::RecordLength {
+        line: get_line(record),
+        index
+    })
+}
+
+pub fn from_veekun_field<'e, T: FromVeekunField>(
+    line: Option<u64>, index: usize, field: &str, default: Option<T>
+) -> Result<'e, T>
+    where <T as FromVeekunField>::VeekunErr: 'e + Debug
+{
+    T::from_veekun_field(field, default).or_else(|e| Err(Error::Veekun {
+        line,
+        field: index,
+        debug: Box::new(e),
+    }))
+}
+
+pub fn from_option_field<'e, T: FromVeekunField>(
+    record: &csv::StringRecord, index: usize, default: T
+) -> Result<'e, T>
+    where <T as FromVeekunField>::VeekunErr: 'e + Debug
+{
+    let field = get_field(record, index)?;
+    from_veekun_field(get_line(record), index, field, Some(default))
+}
+
 /// Read a value from a CSV field. Useful for implementing `FromCsv`.
 pub fn from_field<'e, T: FromVeekunField>(
     record: &csv::StringRecord, index: usize
 ) -> Result<'e, T>
     where <T as FromVeekunField>::VeekunErr: 'e + Debug
 {
-    let line = record.position().and_then(|p| Some(p.line()));
-    let field = record.get(index).ok_or(Error::RecordLength { line, index })?;
-    T::from_veekun_field(field).or_else(|e| Err(Error::Veekun {
-        line: line,
-        field: index,
-        debug: Box::new(e),
-    }))
+    let field = get_field(record, index)?;
+    from_veekun_field(get_line(record), index, field, None)
 }
 
 /// Abstracts creating an object by loading a CSV file.

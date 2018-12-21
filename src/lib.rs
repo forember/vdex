@@ -65,6 +65,21 @@ mod tests {
         table
     }
 
+    fn load_item_flags() -> items::flags::FlagTable {
+        let path = Path::new("veekun/item_flag_map.csv");
+        items::flags::FlagTable::from_csv_file(path)
+            .expect("Failed to load item flags CSV!")
+    }
+
+    fn load_items(berries: &items::berries::BerryTable) -> items::ItemTable {
+        let path = Path::new("veekun/items.csv");
+        let mut table = items::ItemTable::from_csv_file(path)
+            .expect("Failed to load berry table CSV!");
+        table.set_flags(&load_item_flags());
+        table.link_berries(berries);
+        table
+    }
+
     fn load_palace() -> natures::PalaceTable {
         let path = Path::new("veekun/nature_battle_style_preferences.csv");
         natures::PalaceTable::from_csv_file(path)
@@ -79,7 +94,8 @@ mod tests {
     
     #[test]
     fn load_all() {
-        load_berries();
+        let berries = load_berries();
+        load_items(&berries);
         load_palace();
         load_efficacy();
     }
@@ -90,6 +106,19 @@ mod tests {
         let table = load_berries();
         for berry in table.0.into_iter() {
             eprintln!("{:?}", berry);
+        }
+        panic!("Output from this test must be manually inspected.");
+    }
+
+    #[test]
+    #[ignore]
+    fn print_items() {
+        let berries = load_berries();
+        let table = load_items(&berries);
+        let mut v: Vec<_> = table.0.values().collect();
+        v.as_mut_slice().sort_unstable_by_key(|v| v.id);
+        for item in v.into_iter() {
+            eprintln!("{:?}", item);
         }
         panic!("Output from this test must be manually inspected.");
     }

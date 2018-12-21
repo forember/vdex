@@ -32,14 +32,14 @@ pub trait FromVeekun: Sized {
     fn from_veekun(value: Self::Intermediate) -> Option<Self>;
 }
 
-/// Blanket implementation for parsing `FromStr + Default` types directly
-/// from Veekun CSV files.
-impl<V> FromVeekun for V
-    where V: FromStr + Debug + Copy, <V as FromStr>::Err: Debug
+/// Blanket implementation for parsing `FromStr` types directly from Veekun CSV
+/// files.
+impl<T> FromVeekun for T
+    where T: FromStr + Debug + Copy, <T as FromStr>::Err: Debug
 {
-    type Intermediate = V;
+    type Intermediate = T;
 
-    fn from_veekun(value: V) -> Option<Self> { Some(value) }
+    fn from_veekun(value: T) -> Option<Self> { Some(value) }
 }
 
 /// An error in the Veekun CSV representation.
@@ -102,5 +102,28 @@ impl<T> FromVeekunField for T
         }
         let value = result.unwrap();
         Self::from_veekun(value).ok_or(VeekunError::Value(value))
+    }
+}
+
+pub struct VeekunOption<T>(Option<T>);
+
+impl<T> Into<Option<T>> for VeekunOption<T> {
+    fn into(self) -> Option<T> {
+        self.0
+    }
+}
+
+impl<T: FromVeekunField> FromVeekunField for VeekunOption<T> {
+    type VeekunErr = <T as FromVeekunField>::VeekunErr;
+
+    fn from_veekun_field(
+        field: &str, default: Option<Self>
+    ) -> Result<Self, Self::VeekunErr> {
+        if field.chars().all(char::is_whitespace) {
+            Ok(VeekunOption(None))
+        } else {
+            T::from_veekun_field(field, default.and_then(|v| v.into()))
+                .map(|v| VeekunOption(Some(v)))
+        }
     }
 }
