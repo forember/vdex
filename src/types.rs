@@ -40,7 +40,9 @@ pub fn assert_sanity() {
     assert_eq!(Type::Dark.repr(), 16);
 }
 
-impl FromVeekun<u8> for Efficacy {
+impl FromVeekun for Efficacy {
+    type Intermediate = u8;
+
     fn from_veekun(value: u8) -> Option<Self> {
         match value {
             0 => Some(Efficacy::Not),
@@ -52,7 +54,9 @@ impl FromVeekun<u8> for Efficacy {
     }
 }
 
-impl FromVeekun<u8> for Type {
+impl FromVeekun for Type {
+    type Intermediate = u8;
+
     fn from_veekun(value: u8) -> Option<Self> {
         value.checked_sub(1).and_then(Type::from_repr)
     }

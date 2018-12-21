@@ -28,6 +28,8 @@ mod tests {
     use types;
     use versions;
 
+    use veekun;
+
     use Enum;
     use FromCsv;
 
@@ -42,6 +44,11 @@ mod tests {
         pokemon::assert_sanity();
         types::assert_sanity();
         versions::assert_sanity();
+    }
+
+    #[test]
+    fn check_pascal_case() {
+        assert_eq!(veekun::to_pascal_case("master-ball"), "MasterBall");
     }
 
     fn load_berry_flavors() -> items::berries::BerryFlavorTable {

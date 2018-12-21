@@ -23,7 +23,7 @@ pub struct Berry {
 pub struct BerryTable(pub [Berry; BERRY_COUNT]);
 
 impl BerryTable {
-    pub fn set_flavors(&mut self, flavors: &BerryFlavorTable) -> () {
+    pub fn set_flavors(&mut self, flavors: &BerryFlavorTable) {
         for i in 0..BERRY_COUNT {
             let mut max_flavor = None;
             let mut max_value = 0;

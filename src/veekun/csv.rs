@@ -5,8 +5,7 @@ use std::error::Error as StdError;
 use std::fmt::{Debug, Display, Formatter};
 use std::io::Read;
 use std::path::Path;
-use std::str::FromStr;
-use FromVeekun;
+use veekun::repr::FromVeekunField;
 
 /// Error in a Veekun CSV file. The lifetime `'e` is the lifetime of the boxed
 /// Veekun representation error.
@@ -60,15 +59,13 @@ impl<'e> Display for Error<'e> {
             },
             Error::RecordLength { line, index } => {
                 let line_str = line
-                    .and_then(|n| Some(format!("{}", n)))
-                    .unwrap_or("?".to_string());
+                    .map_or("?".to_string(), |n| format!("{}", n));
                 write!(f, "Record on line {} too short for field index {}.",
                        line_str, index)
             },
             Error::Veekun { line, field, debug } => {
                 let line_str = line
-                    .and_then(|n| Some(format!("{}", n)))
-                    .unwrap_or("?".to_string());
+                    .map_or("?".to_string(), |n| format!("{}", n));
                 write!(f, "Error on line {} field {}: {:?}",
                        line_str, field, debug)
             },
@@ -88,10 +85,10 @@ impl<'e> StdError for Error<'e> {
 pub type Result<'e, T> = std::result::Result<T, Error<'e>>;
 
 /// Read a value from a CSV field. Useful for implementing `FromCsv`.
-pub fn from_field<'e, V, T: FromVeekun<V>>(
+pub fn from_field<'e, T: FromVeekunField>(
     record: &csv::StringRecord, index: usize
 ) -> Result<'e, T>
-    where V: FromStr + Debug + Copy + 'e, <V as FromStr>::Err: Debug
+    where <T as FromVeekunField>::VeekunErr: 'e + Debug
 {
     let line = record.position().and_then(|p| Some(p.line()));
     let field = record.get(index).ok_or(Error::RecordLength { line, index })?;

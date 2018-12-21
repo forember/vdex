@@ -15,7 +15,9 @@ bitflags! {
     }
 }
 
-impl FromVeekun<u8> for Flags {
+impl FromVeekun for Flags {
+    type Intermediate = u8;
+
     fn from_veekun(value: u8) -> Option<Self> {
         match value {
             1 ... 8 => Flags::from_bits(1 << (value - 1)),

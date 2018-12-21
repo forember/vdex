@@ -79,7 +79,9 @@ impl std::convert::From<Flavor> for ContestType {
     }
 }
 
-impl FromVeekun<u8> for ContestType {
+impl FromVeekun for ContestType {
+    type Intermediate = u8;
+
     fn from_veekun(id: u8) -> Option<Self> {
         match id {
             1 => Some(ContestType::Cool),
@@ -98,7 +100,9 @@ impl std::convert::From<ContestType> for Flavor {
     }
 }
 
-impl FromVeekun<u8> for Flavor {
+impl FromVeekun for Flavor {
+    type Intermediate = u8;
+
     fn from_veekun(id: u8) -> Option<Self> {
         ContestType::from_veekun(id).and_then(|t| Some(Flavor::from(t)))
     }
@@ -127,7 +131,9 @@ impl Nature {
     }
 }
 
-impl FromVeekun<u8> for Nature {
+impl FromVeekun for Nature {
+    type Intermediate = u8;
+
     fn from_veekun(id: u8) -> Option<Self> {
         match id {
             1 => Some(Nature::Hardy),
@@ -160,7 +166,9 @@ impl FromVeekun<u8> for Nature {
     }
 }
 
-impl FromVeekun<u8> for Stat {
+impl FromVeekun for Stat {
+    type Intermediate = u8;
+
     fn from_veekun(id: u8) -> Option<Self> {
         match id {
             1 => Some(Stat::HP),

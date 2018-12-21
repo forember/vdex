@@ -57,25 +57,33 @@ pub fn assert_sanity() {
     meta::assert_sanity();
 }
 
-impl FromVeekun<u8> for BattleStyle {
+impl FromVeekun for BattleStyle {
+    type Intermediate = u8;
+
     fn from_veekun(value: u8) -> Option<Self> {
         Self::from_repr(value)
     }
 }
 
-impl FromVeekun<u8> for DamageClass {
+impl FromVeekun for DamageClass {
+    type Intermediate = u8;
+
     fn from_veekun(value: u8) -> Option<Self> {
         Self::from_repr(value)
     }
 }
 
-impl FromVeekun<u8> for LearnMethod {
+impl FromVeekun for LearnMethod {
+    type Intermediate = u8;
+
     fn from_veekun(value: u8) -> Option<Self> {
         Self::from_repr(value)
     }
 }
 
-impl FromVeekun<u8> for Target {
+impl FromVeekun for Target {
+    type Intermediate = u8;
+
     fn from_veekun(value: u8) -> Option<Self> {
         Self::from_repr(value)
     }
