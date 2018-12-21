@@ -9,28 +9,37 @@ use std::str::FromStr;
 pub trait FromVeekunField: Sized {
     type VeekunErr;
 
-    fn from_veekun_field(field: &str) -> Result<Self, Self::VeekunErr>;
+    /// Parses the CSV field.
+    ///
+    /// The only effect the value of `default` may have on the return value is
+    /// to return Ok( *x* ) where `default` is Some( *x* ), and an error whould
+    /// have been returned for the given field argument had `default` been None.
+    ///
+    /// Otherwise, the conditions under which `default` is returned are up to
+    /// the implementation, but typically it is returned when the field is empty
+    /// or whitespace (and, of course, the above conditions are met). For
+    /// default-on-error behavior, pass `None` to `default` and call `or` on the
+    /// result.
+    fn from_veekun_field(
+        field: &str, default: Option<Self>
+    ) -> Result<Self, Self::VeekunErr>;
 }
 
 pub trait FromVeekun: Sized {
     type Intermediate;
 
-    const DEFAULT: Option<Self::Intermediate> = None;
-
     /// Creates a new instance from the parsed CSV field value.
     fn from_veekun(value: Self::Intermediate) -> Option<Self>;
 }
 
-/// Blanket implementation for parsing `FromStr` types directly from Veekun
-/// CSV files.
+/// Blanket implementation for parsing `FromStr + Default` types directly
+/// from Veekun CSV files.
 impl<V> FromVeekun for V
     where V: FromStr + Debug + Copy, <V as FromStr>::Err: Debug
 {
     type Intermediate = V;
 
-    fn from_veekun(value: V) -> Option<Self> {
-        Some(value)
-    }
+    fn from_veekun(value: V) -> Option<Self> { Some(value) }
 }
 
 /// An error in the Veekun CSV representation.
@@ -78,11 +87,13 @@ impl<T> FromVeekunField for T
     type VeekunErr = VeekunError<T::Intermediate>;
 
     /// Parses the field string and passes the value to `from_veekun`.
-    fn from_veekun_field(field: &str) -> Result<Self, Self::VeekunErr> {
+    fn from_veekun_field(
+        field: &str, default: Option<Self>
+    ) -> Result<Self, Self::VeekunErr> {
         let value = field.parse().or_else(|e| {
             let error = VeekunError::Parse(e);
             if field.chars().all(char::is_whitespace) {
-                T::DEFAULT.ok_or(error)
+                default.ok_or(error)
             } else {
                 Err(error)
             }
