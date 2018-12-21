@@ -90,14 +90,17 @@ impl<T> FromVeekunField for T
     fn from_veekun_field(
         field: &str, default: Option<Self>
     ) -> Result<Self, Self::VeekunErr> {
-        let value = field.parse().or_else(|e| {
+        let result = field.parse();
+        if let Err(e) = result {
             let error = VeekunError::Parse(e);
-            if field.chars().all(char::is_whitespace) {
-                default.ok_or(error)
-            } else {
-                Err(error)
+            if let Some(d) = default {
+                if field.chars().all(char::is_whitespace) {
+                    return Ok(d)
+                }
             }
-        })?;
+            return Err(error)
+        }
+        let value = result.unwrap();
         Self::from_veekun(value).ok_or(VeekunError::Value(value))
     }
 }
