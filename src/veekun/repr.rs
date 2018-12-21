@@ -79,8 +79,14 @@ impl<T> FromVeekunField for T
 
     /// Parses the field string and passes the value to `from_veekun`.
     fn from_veekun_field(field: &str) -> Result<Self, Self::VeekunErr> {
-        let value = field.parse()
-            .or_else(|e| T::DEFAULT.ok_or(VeekunError::Parse(e)))?;
+        let value = field.parse().or_else(|e| {
+            let error = VeekunError::Parse(e);
+            if field.chars().all(char::is_whitespace) {
+                T::DEFAULT.ok_or(error)
+            } else {
+                Err(error)
+            }
+        })?;
         Self::from_veekun(value).ok_or(VeekunError::Value(value))
     }
 }
