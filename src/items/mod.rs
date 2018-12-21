@@ -118,7 +118,7 @@ impl FromVeekun for FlingEffect {
 }
 
 #[derive(Debug)]
-pub struct Item<'a> {
+pub struct Item {
     pub id: u16,
     pub name: String,
     pub category: Category,
@@ -126,12 +126,12 @@ pub struct Item<'a> {
     pub fling_power: Option<u8>,
     pub fling_effect: FlingEffect,
     pub flags: flags::Flags,
-    pub berry: Option<&'a berries::Berry>,
+    pub berry: Option<berries::Berry>,
 }
 
-pub struct ItemTable<'a>(pub HashMap<u16, Item<'a>>);
+pub struct ItemTable(pub HashMap<u16, Item>);
 
-impl<'a> ItemTable<'a> {
+impl ItemTable {
     pub fn set_flags(&mut self, flag_table: &flags::FlagTable) {
         for (id, item) in self.0.iter_mut() {
             item.flags = flag_table.0.get(id)
@@ -139,24 +139,24 @@ impl<'a> ItemTable<'a> {
         }
     }
 
-    pub fn link_berries(&mut self, berry_table: &'a berries::BerryTable) {
+    pub fn set_berries(&mut self, berry_table: &berries::BerryTable) {
         for berry in berry_table.0.iter() {
             if let Some(item) = self.0.get_mut(&berry.item_id) {
-                item.berry = Some(berry);
+                item.berry = Some(*berry);
             }
         }
     }
 }
 
-impl<'a> std::ops::Index<u16> for ItemTable<'a> {
-    type Output = Item<'a>;
+impl std::ops::Index<u16> for ItemTable {
+    type Output = Item;
 
-    fn index<'b>(&'b self, index: u16) -> &'b Item<'a> {
+    fn index<'a>(&'a self, index: u16) -> &'a Item {
         self.0.index(&index)
     }
 }
 
-impl<'a> vcsv::FromCsvIncremental for ItemTable<'a> {
+impl vcsv::FromCsvIncremental for ItemTable {
     fn from_empty_csv() -> Self {
         ItemTable(HashMap::new())
     }

@@ -1,4 +1,5 @@
 use enums::*;
+use FromVeekun;
 
 #[EnumRepr(type = "u16")]
 pub enum MoveEffect {
@@ -352,4 +353,12 @@ pub fn assert_sanity() {
     assert_eq!(MoveEffect::Bounce.repr(), 264);
     assert_eq!(MoveEffect::IceBurn.repr(), 333);
     assert_eq!(MoveEffect::Hurricane.repr(), 338);
+}
+
+impl FromVeekun for MoveEffect {
+    type Intermediate = u16;
+
+    fn from_veekun(value: u16) -> Option<Self> {
+        MoveEffect::from_repr(value)
+    }
 }

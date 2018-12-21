@@ -33,6 +33,7 @@ mod tests {
     use Enum;
     use FromCsv;
 
+    use std::mem::size_of;
     use std::path::Path;
 
     #[test]
@@ -71,12 +72,12 @@ mod tests {
             .expect("Failed to load item flags CSV!")
     }
 
-    fn load_items(berries: &items::berries::BerryTable) -> items::ItemTable {
+    fn load_items() -> items::ItemTable {
         let path = Path::new("veekun/items.csv");
         let mut table = items::ItemTable::from_csv_file(path)
             .expect("Failed to load berry table CSV!");
         table.set_flags(&load_item_flags());
-        table.link_berries(berries);
+        table.set_berries(&load_berries());
         table
     }
 
@@ -94,8 +95,7 @@ mod tests {
     
     #[test]
     fn load_all() {
-        let berries = load_berries();
-        load_items(&berries);
+        load_items();
         load_palace();
         load_efficacy();
     }
@@ -113,8 +113,7 @@ mod tests {
     #[test]
     #[ignore]
     fn print_items() {
-        let berries = load_berries();
-        let table = load_items(&berries);
+        let table = load_items();
         let mut v: Vec<_> = table.0.values().collect();
         v.as_mut_slice().sort_unstable_by_key(|v| v.id);
         for item in v.into_iter() {
@@ -157,5 +156,13 @@ mod tests {
             }
         }
         panic!("Output from this test must be manually inspected.");
+    }
+
+    #[test]
+    #[ignore]
+    fn sizes() {
+        assert_eq!(size_of::<items::berries::Berry>(), 6);
+        assert_eq!(size_of::<items::Item>(), 40);
+        assert_eq!(size_of::<moves::Move>(), 80);
     }
 }
