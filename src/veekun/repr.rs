@@ -15,6 +15,8 @@ pub trait FromVeekunField: Sized {
 pub trait FromVeekun: Sized {
     type Intermediate;
 
+    const DEFAULT: Option<Self::Intermediate> = None;
+
     /// Creates a new instance from the parsed CSV field value.
     fn from_veekun(value: Self::Intermediate) -> Option<Self>;
 }
@@ -77,7 +79,8 @@ impl<T> FromVeekunField for T
 
     /// Parses the field string and passes the value to `from_veekun`.
     fn from_veekun_field(field: &str) -> Result<Self, Self::VeekunErr> {
-        let value = field.parse().or_else(|e| Err(VeekunError::Parse(e)))?;
+        let value = field.parse()
+            .or_else(|e| T::DEFAULT.ok_or(VeekunError::Parse(e)))?;
         Self::from_veekun(value).ok_or(VeekunError::Value(value))
     }
 }
