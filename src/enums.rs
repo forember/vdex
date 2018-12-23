@@ -30,11 +30,13 @@
 //! # Examples
 //! ```
 //! extern crate pbirch;
+//! extern crate enum_repr;
 //! extern crate libc;
 //!
 //! use libc::*;
 //! 
-//! use pbirch::enums::*;
+//! use pbirch::Enum;
+//! use enum_repr::EnumRepr;
 //! 
 //! #[EnumRepr(type = "c_int")]
 //! pub enum IpProto {
@@ -52,11 +54,13 @@
 //!
 //! ```
 //! # extern crate pbirch;
+//! # extern crate enum_repr;
 //! # extern crate libc;
 //! #
 //! # use libc::*;
 //! #
-//! # use pbirch::enums::*;
+//! # use pbirch::Enum;
+//! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "c_int")]
 //! #[derive(Hash)]
@@ -83,11 +87,13 @@
 //!
 //! ```no_run
 //! # extern crate pbirch;
+//! # extern crate enum_repr;
 //! # extern crate libc;
 //! #
 //! # use libc::*;
 //! #
-//! # use pbirch::enums::*;
+//! # use pbirch::Enum;
+//! # use enum_repr::EnumRepr;
 //! #
 //! // compatible with documentation and other attributes
 //! 
@@ -105,11 +111,13 @@
 //! Discriminants can be implicit if `implicit = true` (default):
 //! ```
 //! # extern crate pbirch;
+//! # extern crate enum_repr;
 //! # extern crate libc;
 //! #
 //! # use libc::*;
 //! #
-//! # use pbirch::enums::*;
+//! # use pbirch::Enum;
+//! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "c_int")]
 //! pub enum Test {
@@ -129,11 +137,13 @@
 //! Using implicit discriminants with the flag false is an error:
 //! ```compile_fail
 //! # extern crate pbirch;
+//! # extern crate enum_repr;
 //! # extern crate libc;
 //! #
 //! # use libc::*;
 //! #
-//! # use pbirch::enums::*;
+//! # use pbirch::Enum;
+//! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "c_int", implicit = false)]
 //! pub enum Test {
@@ -148,8 +158,10 @@
 //! ```compile_fail
 //! # #![deny(overflowing_literals)]
 //! # extern crate pbirch;
+//! # extern crate enum_repr;
 //! #
-//! # use pbirch::enums::*;
+//! # use pbirch::Enum;
+//! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "u8")]
 //! enum Test {
@@ -166,8 +178,10 @@
 //! ```compile_fail
 //! # #![deny(overflowing_literals)]
 //! # extern crate pbirch;
+//! # extern crate enum_repr;
 //! #
-//! # use pbirch::enums::*;
+//! # use pbirch::Enum;
+//! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "u8")]
 //! enum Test {
@@ -181,8 +195,10 @@
 //! ```compile_fail
 //! # #![deny(overflowing_literals)]
 //! # extern crate pbirch;
+//! # extern crate enum_repr;
 //! #
-//! # use pbirch::enums::*;
+//! # use pbirch::Enum;
+//! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "u8")]
 //! enum Test {
@@ -197,8 +213,10 @@
 //! ```compile_fail
 //! # #![deny(overflowing_literals)]
 //! # extern crate pbirch;
+//! # extern crate enum_repr;
 //! #
-//! # use pbirch::enums::*;
+//! # use pbirch::Enum;
+//! # use enum_repr::EnumRepr;
 //! #
 //! const C: u16 = 256;
 //!
@@ -213,10 +231,12 @@
 //! Using the actual enum discriminant representation:
 //! ```
 //! # extern crate pbirch;
+//! # extern crate enum_repr;
 //! #
 //! # use std::mem::size_of;
 //! #
-//! # use pbirch::enums::*;
+//! # use pbirch::Enum;
+//! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "u8")]
 //! enum Test {
@@ -231,9 +251,11 @@
 //! Prevent automatic derive with `derive = false`:
 //! ```
 //! # extern crate pbirch;
+//! # extern crate enum_repr;
 //! #
 //! # use std::fmt;
-//! # use pbirch::enums::*;
+//! # use pbirch::Enum;
+//! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "u8", derive = false)]
 //! #[derive(Copy, Clone)]

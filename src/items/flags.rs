@@ -28,14 +28,6 @@ impl FromVeekun for Flags {
 
 pub struct FlagTable(pub HashMap<u16, Flags>);
 
-impl std::ops::Index<u16> for FlagTable {
-    type Output = Flags;
-
-    fn index<'a>(&'a self, index: u16) -> &'a Flags {
-        self.0.index(&index)
-    }
-}
-
 impl vcsv::FromCsvIncremental for FlagTable {
     fn from_empty_csv() -> Self {
         FlagTable(HashMap::new())
@@ -46,7 +38,7 @@ impl vcsv::FromCsvIncremental for FlagTable {
     ) -> vcsv::Result<'e, ()> {
         let id = vcsv::from_field(&record, 0)?;
         let flag = vcsv::from_field(&record, 1)?;
-        let new_flags = self.0.get(&id).map_or(Flags::empty(), |v| *v) | flag;
+        let new_flags = self.0.get(&id).map_or(flag, |v| flag | *v);
         self.0.insert(id, new_flags);
         Ok(())
     }

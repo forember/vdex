@@ -2,7 +2,7 @@ use enums::*;
 use FromVeekun;
 
 #[EnumRepr(type = "u16")]
-pub enum MoveEffect {
+pub enum Effect {
     // Generic
     RegularDamage = 1,
     SleepTarget,
@@ -338,27 +338,10 @@ pub enum MoveEffect {
     Hurricane,
 }
 
-pub fn assert_sanity() {
-    assert_eq!(MoveEffect::RaiseUserDefense.repr(), 12);
-    assert_eq!(MoveEffect::LowerTargetSpeed.repr(), 21);
-    assert_eq!(MoveEffect::RaiseUserSpecialDefense2.repr(), 55);
-    assert_eq!(MoveEffect::LowerTargetSpeed2.repr(), 61);
-    assert_eq!(MoveEffect::ChanceLowerTargetAccuracy.repr(), 74);
-    assert_eq!(MoveEffect::Sketch.repr(), 96);
-    assert_eq!(MoveEffect::Curse.repr(), 110);
-    assert_eq!(MoveEffect::Sonicboom.repr(), 131);
-    assert_eq!(MoveEffect::ChanceRaiseUserAllStats.repr(), 141);
-    assert_eq!(MoveEffect::DefenseCurl.repr(), 157);
-    assert_eq!(MoveEffect::Swallow.repr(), 163);
-    assert_eq!(MoveEffect::Bounce.repr(), 264);
-    assert_eq!(MoveEffect::IceBurn.repr(), 333);
-    assert_eq!(MoveEffect::Hurricane.repr(), 338);
-}
-
-impl FromVeekun for MoveEffect {
+impl FromVeekun for Effect {
     type Intermediate = u16;
 
     fn from_veekun(value: u16) -> Option<Self> {
-        MoveEffect::from_repr(value)
+        Effect::from_repr(value)
     }
 }

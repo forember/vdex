@@ -35,11 +35,6 @@ pub enum Type {
     Dark,
 }
 
-pub fn assert_sanity() {
-    assert_eq!(Efficacy::Super.repr(), 1);
-    assert_eq!(Type::Dark.repr(), 16);
-}
-
 impl FromVeekun for Efficacy {
     type Intermediate = u8;
 

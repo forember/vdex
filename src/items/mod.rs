@@ -1,11 +1,19 @@
-pub mod berries;
-pub mod flags;
+pub(self) mod berries;
+pub(self) mod flags;
+
+pub use self::berries::Berry;
+pub use self::berries::BERRY_COUNT;
+pub use self::berries::Flavor;
+pub use self::flags::Flags;
 
 use std::collections::HashMap;
+use std::ffi::OsStr;
+use std::path::Path;
 use enums::*;
 use FromVeekun;
+use to_pascal_case;
 use vcsv;
-use veekun;
+use vcsv::FromCsv;
 use veekun::repr::VeekunOption;
 
 #[EnumRepr(type = "u8")]
@@ -78,13 +86,6 @@ pub enum Pocket {
     Key,
 }
 
-pub fn assert_sanity() {
-    assert_eq!(Category::StatusCures.repr(), 30);
-    assert_eq!(Category::MiracleShooter.repr(), 43);
-    assert_eq!(FlingEffect::Flinch.repr(), 7);
-    assert_eq!(Pocket::Key.repr(), 8);
-}
-
 impl Category {
     pub fn pocket(self) -> Pocket {
         match self.repr() {
@@ -125,21 +126,35 @@ pub struct Item {
     pub cost: u16,
     pub fling_power: Option<u8>,
     pub fling_effect: FlingEffect,
-    pub flags: flags::Flags,
-    pub berry: Option<berries::Berry>,
+    pub flags: Flags,
+    pub berry: Option<Berry>,
 }
 
 pub struct ItemTable(pub HashMap<u16, Item>);
 
 impl ItemTable {
-    pub fn set_flags(&mut self, flag_table: &flags::FlagTable) {
+    pub fn from_files<'e, S: AsRef<OsStr> + ?Sized>(
+        items_file: &S, flags_file: &S, berries_file: &S, flavors_file: &S
+    ) -> vcsv::Result<'e, Self> {
+        let berries_table
+            = berries::BerryTable::from_files(berries_file, flavors_file)?;
+        let flags_path = Path::new(flags_file);
+        let flags_table = flags::FlagTable::from_csv_file(flags_path)?;
+        let items_path = Path::new(items_file);
+        let mut items_table = ItemTable::from_csv_file(items_path)?;
+        items_table.set_flags(&flags_table);
+        items_table.set_berries(&berries_table);
+        Ok(items_table)
+    }
+
+    fn set_flags(&mut self, flag_table: &flags::FlagTable) {
         for (id, item) in self.0.iter_mut() {
             item.flags = flag_table.0.get(id)
                 .map_or(flags::Flags::empty(), |v| *v);
         }
     }
 
-    pub fn set_berries(&mut self, berry_table: &berries::BerryTable) {
+    fn set_berries(&mut self, berry_table: &berries::BerryTable) {
         for berry in berry_table.0.iter() {
             if let Some(item) = self.0.get_mut(&berry.item_id) {
                 item.berry = Some(*berry);
@@ -165,19 +180,15 @@ impl vcsv::FromCsvIncremental for ItemTable {
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<'e, ()> {
         let id = vcsv::from_field(&record, 0)?;
-        let name = veekun::to_pascal_case(vcsv::get_field(&record, 1)?);
-        let category = vcsv::from_field(&record, 2)?;
-        let cost = vcsv::from_field(&record, 3)?;
         let fling_power: VeekunOption<_> = vcsv::from_field(&record, 4)?;
-        let fling_effect
-            = vcsv::from_option_field(&record, 5, FlingEffect::None)?;
         self.0.insert(id, Item {
             id,
-            name,
-            category,
-            cost,
+            name: to_pascal_case(vcsv::get_field(&record, 1)?),
+            category: vcsv::from_field(&record, 2)?,
+            cost: vcsv::from_field(&record, 3)?,
             fling_power: fling_power.into(),
-            fling_effect,
+            fling_effect:
+                vcsv::from_option_field(&record, 5, FlingEffect::None)?,
             flags: flags::Flags::empty(),
             berry: None,
         });

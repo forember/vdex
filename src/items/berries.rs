@@ -1,16 +1,65 @@
-use Enum;
-use natures::{ContestType, Flavor};
-use types::Type;
+use std::ffi::OsStr;
+use std::path::Path;
+use enums::*;
+use FromVeekun;
+use Type;
 use vcsv;
+use vcsv::FromCsv;
 
 pub const BERRY_COUNT: usize = 64;
 
-pub const NULL_BERRY: Berry = Berry {
-    item_id: 0,
-    natural_gift_power: 0,
-    natural_gift_type: Type::Normal,
-    flavor: None,
-};
+#[EnumRepr(type = "u8")]
+pub enum ContestType {
+    Cool = 0,
+    Tough,
+    Cute,
+    Beauty,
+    Smart,
+}
+
+#[EnumRepr(type = "u8")]
+pub enum Flavor {
+    Spicy = 0,
+    Sour,
+    Sweet,
+    Dry,
+    Bitter,
+}
+
+impl std::convert::From<Flavor> for ContestType {
+    fn from(flavor: Flavor) -> Self {
+        ContestType::from_repr(flavor.repr()).unwrap()
+    }
+}
+
+impl FromVeekun for ContestType {
+    type Intermediate = u8;
+
+    fn from_veekun(id: u8) -> Option<Self> {
+        match id {
+            1 => Some(ContestType::Cool),
+            2 => Some(ContestType::Beauty),
+            3 => Some(ContestType::Cute),
+            4 => Some(ContestType::Smart),
+            5 => Some(ContestType::Tough),
+            _ => None,
+        }
+    }
+}
+
+impl std::convert::From<ContestType> for Flavor {
+    fn from(contest: ContestType) -> Self {
+        Flavor::from_repr(contest.repr()).unwrap()
+    }
+}
+
+impl FromVeekun for Flavor {
+    type Intermediate = u8;
+
+    fn from_veekun(id: u8) -> Option<Self> {
+        ContestType::from_veekun(id).and_then(|t| Some(Flavor::from(t)))
+    }
+}
 
 #[derive(Copy, Clone, Debug)]
 pub struct Berry {
@@ -20,10 +69,32 @@ pub struct Berry {
     pub flavor: Option<Flavor>,
 }
 
+impl Default for Berry {
+    fn default() -> Self {
+        Berry {
+            item_id: 0,
+            natural_gift_power: 0,
+            natural_gift_type: Type::Normal,
+            flavor: None,
+        }
+    }
+}
+
 pub struct BerryTable(pub [Berry; BERRY_COUNT]);
 
 impl BerryTable {
-    pub fn set_flavors(&mut self, flavors: &BerryFlavorTable) {
+    pub fn from_files<'e, S: AsRef<OsStr> + ?Sized>(
+        berries_file: &S, flavors_file: &S
+    ) -> vcsv::Result<'e, Self> {
+        let flavors_path = Path::new(flavors_file);
+        let flavors_table = BerryFlavorTable::from_csv_file(flavors_path)?;
+        let berries_path = Path::new(berries_file);
+        let mut berries_table = BerryTable::from_csv_file(berries_path)?;
+        berries_table.set_flavors(&flavors_table);
+        Ok(berries_table)
+    }
+
+    fn set_flavors(&mut self, flavors: &BerryFlavorTable) {
         for i in 0..BERRY_COUNT {
             let mut max_flavor = None;
             let mut max_value = 0;
@@ -57,20 +128,17 @@ impl std::ops::IndexMut<usize> for BerryTable {
 
 impl vcsv::FromCsvIncremental for BerryTable {
     fn from_empty_csv() -> Self {
-        BerryTable([NULL_BERRY; BERRY_COUNT])
+        BerryTable([Default::default(); BERRY_COUNT])
     }
     
     fn load_csv_record<'e>(
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<'e, ()> {
         let id: usize = vcsv::from_field(&record, 0)?;
-        let item_id = vcsv::from_field(&record, 1)?;
-        let natural_gift_power = vcsv::from_field(&record, 3)?;
-        let natural_gift_type = vcsv::from_field(&record, 4)?;
         self[id - 1] = Berry {
-            item_id,
-            natural_gift_power,
-            natural_gift_type,
+            item_id: vcsv::from_field(&record, 1)?,
+            natural_gift_power: vcsv::from_field(&record, 3)?,
+            natural_gift_type: vcsv::from_field(&record, 4)?,
             flavor: None,
         };
         Ok(())

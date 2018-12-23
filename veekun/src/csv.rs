@@ -5,7 +5,7 @@ use std::error::Error as StdError;
 use std::fmt::{Debug, Display, Formatter};
 use std::io::Read;
 use std::path::Path;
-use veekun::repr::FromVeekunField;
+use repr::FromVeekunField;
 
 /// Error in a Veekun CSV file. The lifetime `'e` is the lifetime of the boxed
 /// Veekun representation error.

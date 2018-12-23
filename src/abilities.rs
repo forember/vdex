@@ -169,7 +169,3 @@ pub enum Ability {
     Turboblaze,
     Teravolt,
 }
-
-pub fn assert_sanity() {
-    assert_eq!(Ability::Teravolt.repr(), 164);
-}

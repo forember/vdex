@@ -33,9 +33,3 @@ pub enum Gender {
     Male,
     Genderless,
 }
-
-pub fn assert_sanity() {
-    assert_eq!(EggGroup::NoEggs.repr(), 15);
-    assert_eq!(EvolutionTrigger::Shed.repr(), 4);
-    assert_eq!(Gender::Genderless.repr(), 3);
-}

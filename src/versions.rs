@@ -1,6 +1,7 @@
 //! Game versions and generations.
 
 use enums::*;
+use FromVeekun;
 
 #[EnumRepr(type = "u8")]
 pub enum Generation {
@@ -55,14 +56,32 @@ pub enum VersionGroup {
     BlackWhite2,
 }
 
-pub fn assert_sanity() {
-    assert_eq!(Generation::V.repr(), 5);
-    assert_eq!(Version::White2.repr(), 22);
-    assert_eq!(VersionGroup::BlackWhite2.repr(), 14);
-}
-
 use versions::Version as V;
 use versions::VersionGroup as VG;
+
+impl FromVeekun for Generation {
+    type Intermediate = u8;
+    
+    fn from_veekun(id: u8) -> Option<Self> {
+        Self::from_repr(id)
+    }
+}
+
+impl FromVeekun for Version {
+    type Intermediate = u8;
+    
+    fn from_veekun(id: u8) -> Option<Self> {
+        Self::from_repr(id)
+    }
+}
+
+impl FromVeekun for VersionGroup {
+    type Intermediate = u8;
+    
+    fn from_veekun(id: u8) -> Option<Self> {
+        Self::from_repr(id)
+    }
+}
 
 impl Version {
     pub fn group(self) -> VersionGroup {

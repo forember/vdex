@@ -2,28 +2,11 @@
 
 use enums::*;
 use moves::BattleStyle;
+use items::Flavor;
 use vcsv;
 use FromVeekun;
 
 pub const NATURE_COUNT: usize = 25;
-
-#[EnumRepr(type = "u8")]
-pub enum ContestType {
-    Cool = 0,
-    Tough,
-    Cute,
-    Beauty,
-    Smart,
-}
-
-#[EnumRepr(type = "u8")]
-pub enum Flavor {
-    Spicy = 0,
-    Sour,
-    Sweet,
-    Dry,
-    Bitter,
-}
 
 #[EnumRepr(type = "u8")]
 pub enum Nature {
@@ -64,48 +47,6 @@ pub enum Stat {
     SpecialDefense,
     Accuracy,
     Evasion,
-}
-
-pub fn assert_sanity() {
-    assert_eq!(ContestType::Smart.repr(), 4);
-    assert_eq!(Flavor::Bitter.repr(), 4);
-    assert_eq!(Nature::Quirky.repr(), 24);
-    assert_eq!(Stat::Evasion.repr(), 6);
-}
-
-impl std::convert::From<Flavor> for ContestType {
-    fn from(flavor: Flavor) -> Self {
-        ContestType::from_repr(flavor.repr()).unwrap()
-    }
-}
-
-impl FromVeekun for ContestType {
-    type Intermediate = u8;
-
-    fn from_veekun(id: u8) -> Option<Self> {
-        match id {
-            1 => Some(ContestType::Cool),
-            2 => Some(ContestType::Beauty),
-            3 => Some(ContestType::Cute),
-            4 => Some(ContestType::Smart),
-            5 => Some(ContestType::Tough),
-            _ => None,
-        }
-    }
-}
-
-impl std::convert::From<ContestType> for Flavor {
-    fn from(contest: ContestType) -> Self {
-        Flavor::from_repr(contest.repr()).unwrap()
-    }
-}
-
-impl FromVeekun for Flavor {
-    type Intermediate = u8;
-
-    fn from_veekun(id: u8) -> Option<Self> {
-        ContestType::from_veekun(id).and_then(|t| Some(Flavor::from(t)))
-    }
 }
 
 impl Nature {

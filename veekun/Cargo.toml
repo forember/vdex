@@ -1,0 +1,7 @@
+[package]
+name = "veekun"
+version = "0.1.0"
+authors = ["Chris McKinney <ntd5@tachibanatech.com>"]
+
+[dependencies]
+csv = "1"
