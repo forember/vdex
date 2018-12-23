@@ -1,9 +1,12 @@
 use std::collections::HashMap;
+use std::path::Path;
+use std::ffi::OsStr;
 use enums::*;
 use FromVeekun;
-use moves::CHANGEABLE_STATS;
+use moves::{CHANGEABLE_STATS, MOVE_COUNT};
 use Stat;
 use vcsv;
+use vcsv::FromCsv;
 use veekun::repr::VeekunOption;
 
 #[EnumRepr(type = "i8")]
@@ -94,6 +97,7 @@ impl FromVeekun for Flags {
     }
 }
 
+#[derive(Copy, Clone, Debug)]
 pub struct Metadata {
     pub category: Category,
     pub ailment: Ailment,
@@ -128,25 +132,49 @@ impl Default for Metadata {
     }
 }
 
-pub struct MetaTable(pub HashMap<u16, Metadata>);
+pub struct MetaTable(pub [Metadata; MOVE_COUNT]);
 
-impl std::ops::Index<u16> for MetaTable {
-    type Output = Metadata;
+impl MetaTable {
+    pub fn from_files<'e, S: AsRef<OsStr> + ?Sized>(
+        meta_file: &S, stat_changes_file: &S, flags_file: &S
+    ) -> vcsv::Result<'e, Self> {
+        let flags_path = Path::new(flags_file);
+        let flags_table = FlagTable::from_csv_file(flags_path)?;
+        let stat_changes_path = Path::new(stat_changes_file);
+        let stat_changes_table
+            = StatChangeTable::from_csv_file(stat_changes_path)?;
+        let meta_path = Path::new(meta_file);
+        let mut meta_table = MetaTable::from_csv_file(meta_path)?;
+        meta_table.set_stat_changes(&stat_changes_table);
+        meta_table.set_flags(&flags_table);
+        Ok(meta_table)
+    }
 
-    fn index<'a>(&'a self, index: u16) -> &'a Metadata {
-        self.0.index(&index)
+    fn set_stat_changes(&mut self, stat_changes_table: &StatChangeTable) {
+        for (id, stat_changes) in stat_changes_table.0.iter() {
+            self.0[id - 1].stat_changes = *stat_changes;
+        }
+    }
+
+    fn set_flags(&mut self, flags_table: &FlagTable) {
+        for (id, flags) in flags_table.0.iter() {
+            self.0[id - 1].flags = *flags;
+        }
     }
 }
 
 impl vcsv::FromCsvIncremental for MetaTable {
     fn from_empty_csv() -> Self {
-        MetaTable(HashMap::new())
+        MetaTable([Default::default(); MOVE_COUNT])
     }
 
     fn load_csv_record<'e>(
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<'e, ()> {
-        let id = vcsv::from_field(&record, 0)?;
+        let id: usize = vcsv::from_field(&record, 0)?;
+        if id > 10000 {
+            return Ok(())
+        }
         let min_hits: VeekunOption<u8> = vcsv::from_field(&record, 3)?;
         let max_hits: VeekunOption<u8> = vcsv::from_field(&record, 4)?;
         let hits = match min_hits.into() {
@@ -165,7 +193,7 @@ impl vcsv::FromCsvIncremental for MetaTable {
             },
             None => None,
         };
-        self.0.insert(id, Metadata {
+        self.0[id - 1] = Metadata {
             category: vcsv::from_field(&record, 1)?,
             ailment: vcsv::from_field(&record, 2)?,
             hits,
@@ -178,20 +206,12 @@ impl vcsv::FromCsvIncremental for MetaTable {
             stat_chance: vcsv::from_field(&record, 12)?,
             stat_changes: [0; CHANGEABLE_STATS],
             flags: Flags::empty(),
-        });
+        };
         Ok(())
     }
 }
 
-pub struct StatChangeTable(pub HashMap<u16, [i8; CHANGEABLE_STATS]>);
-
-impl std::ops::Index<u16> for StatChangeTable {
-    type Output = [i8; CHANGEABLE_STATS];
-
-    fn index<'a>(&'a self, index: u16) -> &'a [i8; CHANGEABLE_STATS] {
-        self.0.index(&index)
-    }
-}
+pub struct StatChangeTable(pub HashMap<usize, [i8; CHANGEABLE_STATS]>);
 
 impl vcsv::FromCsvIncremental for StatChangeTable {
     fn from_empty_csv() -> Self {
@@ -202,6 +222,9 @@ impl vcsv::FromCsvIncremental for StatChangeTable {
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<'e, ()> {
         let id = vcsv::from_field(&record, 0)?;
+        if id > 10000 {
+            return Ok(())
+        }
         let stat: Stat = vcsv::from_field(&record, 1)?;
         let change = vcsv::from_field(&record, 2)?;
         let mut stat_changes = self.0.get(&id)
@@ -212,15 +235,7 @@ impl vcsv::FromCsvIncremental for StatChangeTable {
     }
 }
 
-pub struct FlagTable(pub HashMap<u16, Flags>);
-
-impl std::ops::Index<u16> for FlagTable {
-    type Output = Flags;
-
-    fn index<'a>(&'a self, index: u16) -> &'a Flags {
-        self.0.index(&index)
-    }
-}
+pub struct FlagTable(pub HashMap<usize, Flags>);
 
 impl vcsv::FromCsvIncremental for FlagTable {
     fn from_empty_csv() -> Self {
@@ -231,6 +246,9 @@ impl vcsv::FromCsvIncremental for FlagTable {
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<'e, ()> {
         let id = vcsv::from_field(&record, 0)?;
+        if id > 10000 {
+            return Ok(())
+        }
         let flag = vcsv::from_field(&record, 1)?;
         let new_flags = self.0.get(&id).map_or(flag, |v| flag | *v);
         self.0.insert(id, new_flags);

@@ -73,6 +73,15 @@ fn load_items() -> items::ItemTable {
         .expect("Failed to load item CSV files!")
 }
 
+fn load_moves() -> moves::MoveTable {
+    moves::MoveTable::from_files(
+        "veekun/data/moves.csv",
+        "veekun/data/move_meta.csv",
+        "veekun/data/move_meta_stat_changes.csv",
+        "veekun/data/move_flag_map.csv")
+        .expect("Failed to load move CSV files!")
+}
+
 fn load_palace() -> natures::PalaceTable {
     let path = Path::new("veekun/data/nature_battle_style_preferences.csv");
     natures::PalaceTable::from_csv_file(path)
@@ -88,6 +97,7 @@ fn load_efficacy() -> types::EfficacyTable {
 #[test]
 fn load_all() {
     load_items();
+    load_moves();
     load_palace();
     load_efficacy();
 }
@@ -100,6 +110,16 @@ fn print_items() {
     v.as_mut_slice().sort_unstable_by_key(|v| v.id);
     for item in v.into_iter() {
         eprintln!("{:?}", item);
+    }
+    panic!("Output from this test must be manually inspected.");
+}
+
+#[test]
+#[ignore]
+fn print_moves() {
+    let table = load_moves();
+    for mov in &table.0 {
+        eprintln!("{:?}", mov);
     }
     panic!("Output from this test must be manually inspected.");
 }
