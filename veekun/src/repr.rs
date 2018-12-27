@@ -1,5 +1,10 @@
-//! The `FromVeekun` trait allows for conversion from the representations in
-//! the Veekun CSV files to pbirch types.
+//! Traits for conversion from the representations in the Veekun CSV files.
+//!
+//! `FromVeekunField` allows values to be loaded from the CSV fields, and
+//! `FromVeekun` provides a convenient way to implement `FromVeekunField` by
+//! first converting to a `FromStr` intermediate type.
+//!
+//! See [veekun::csv](../csv/index.html) for loading whole CSV files.
 
 use std::error::Error as StdError;
 use std::fmt::{Debug, Display, Formatter};
@@ -7,6 +12,7 @@ use std::str::FromStr;
 
 /// Abstracts the idea of creating a new instance from a CSV field.
 pub trait FromVeekunField: Sized {
+    /// Error type returned from `from_veekun_field`.
     type VeekunErr;
 
     /// Parses the CSV field.
@@ -25,7 +31,13 @@ pub trait FromVeekunField: Sized {
     ) -> Result<Self, Self::VeekunErr>;
 }
 
+/// Convenience trait that first converts the CSV field to an intermediate type,
+/// and then to the final type.
+///
+/// If the intermediate type is `FromStr + Debug + Copy`, and the `FromStr::Err`
+/// type is `Debug`, then `FromVeekunField` will be automatically implemented.
 pub trait FromVeekun: Sized {
+    /// The intermediate type from which to convert.
     type Intermediate;
 
     /// Creates a new instance from the parsed CSV field value.
@@ -39,7 +51,10 @@ impl<T> FromVeekun for T
 {
     type Intermediate = T;
 
-    fn from_veekun(value: T) -> Option<Self> { Some(value) }
+    /// Just returns `Some(value)`.
+    fn from_veekun(value: T) -> Option<Self> {
+        Some(value)
+    }
 }
 
 /// An error in the Veekun CSV representation.
@@ -105,6 +120,14 @@ impl<T> FromVeekunField for T
     }
 }
 
+/// Wrapper for `Option<T>` that implements `FromVeekunField`, but does not
+/// use `Some()` or `None` in CSV field.
+///
+/// `Option<T>` implements `FromVeekunField` via the `FromVeekun` blanket
+/// implementation for `FromStr` types, but it requires the CSV field to
+/// literally contain `Some()` or `None`. This type, on the other hand, yields
+/// `None` for an empty field (or all whitespace), and `Some` otherwise
+/// (assuming no error occurs in conversion).
 pub struct VeekunOption<T>(Option<T>);
 
 impl<T> Into<Option<T>> for VeekunOption<T> {

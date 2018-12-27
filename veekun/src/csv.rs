@@ -1,16 +1,33 @@
-//! The `FromCsv` trait allows for loading pbirch Pokédex tables from
-//! Veekun CSV files.
+//! Traits for loading Pokédex tables from Veekun CSV files.
 
 use std::error::Error as StdError;
-use std::fmt::{Debug, Display, Formatter};
+use std::fmt::{Display, Formatter};
 use std::io::Read;
 use std::path::Path;
 use repr::FromVeekunField;
 
-/// Error in a Veekun CSV file. The lifetime `'e` is the lifetime of the boxed
-/// Veekun representation error.
+/// Miscellaneous error intended for `Error::Veekun`. Just wraps a string
+/// literal.
 #[derive(Debug)]
-pub enum Error<'e> {
+pub struct MiscError(&'static str);
+
+impl From<&'static str> for MiscError {
+    fn from(s: &'static str) -> Self {
+        MiscError(s)
+    }
+}
+
+impl Display for MiscError {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl StdError for MiscError { }
+
+/// Error in a Veekun CSV file.
+#[derive(Debug)]
+pub enum Error {
     /// CSV format error.
     Csv(csv::Error),
     /// Record too short.
@@ -24,12 +41,12 @@ pub enum Error<'e> {
         line: Option<u64>,
         /// Field number on the line.
         field: usize,
-        /// Object for debug output (usually of type `veekun::repr::Error`).
-        debug: Box<Debug + 'e>,
+        /// Error object (usually of type `veekun::repr::Error`).
+        error: Box<StdError>,
     },
 }
 
-impl<'e> Error<'e> {
+impl Error {
     /// Line number on which the error occurred, if it is available.
     pub fn line(&self) -> Option<u64> {
         match self {
@@ -45,13 +62,13 @@ impl<'e> Error<'e> {
     }
 }
 
-impl<'e> From<csv::Error> for Error<'e> {
+impl From<csv::Error> for Error {
     fn from(error: csv::Error) -> Self {
         Error::Csv(error)
     }
 }
 
-impl<'e> Display for Error<'e> {
+impl Display for Error {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         match self {
             Error::Csv(error) => {
@@ -63,66 +80,74 @@ impl<'e> Display for Error<'e> {
                 write!(f, "Record on line {} too short for field index {}.",
                        line_str, index)
             },
-            Error::Veekun { line, field, debug } => {
+            Error::Veekun { line, field, error } => {
                 let line_str = line
                     .map_or("?".to_string(), |n| format!("{}", n));
-                write!(f, "Error on line {} field {}: {:?}",
-                       line_str, field, debug)
+                write!(f, "Error on line {} field {}: {}",
+                       line_str, field, error)
             },
         }
     }
 }
 
-impl<'e> StdError for Error<'e> {
+impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
             Error::Csv(error) => Some(error),
+            Error::Veekun { error, .. } => Some(error.as_ref()),
             _ => None,
         }
     }
 }
 
-pub type Result<'e, T> = std::result::Result<T, Error<'e>>;
+/// The type returned by Veekun CSV functions.
+pub type Result<T> = std::result::Result<T, Error>;
 
+/// Get the line number of a record, if it is available.
 pub fn get_line(record: &csv::StringRecord) -> Option<u64> {
     record.position().map(csv::Position::line)
 }
 
-pub fn get_field<'e>(
+/// Get the string for a field, or an Error on out-of-bounds.
+pub fn get_field(
     record: &csv::StringRecord, index: usize
-) -> Result<'e, &str> {
+) -> Result<&str> {
     record.get(index).ok_or_else(|| Error::RecordLength {
         line: get_line(record),
         index
     })
 }
 
-pub fn from_veekun_field<'e, T: FromVeekunField>(
+/// Read a value from a CSV field. See `from_field` and `from_option_field`.
+pub fn from_veekun_field<T: FromVeekunField>(
     line: Option<u64>, index: usize, field: &str, default: Option<T>
-) -> Result<'e, T>
-    where <T as FromVeekunField>::VeekunErr: 'e + Debug
+) -> Result<T>
+    where <T as FromVeekunField>::VeekunErr: 'static + StdError
 {
     T::from_veekun_field(field, default).or_else(|e| Err(Error::Veekun {
         line,
         field: index,
-        debug: Box::new(e),
+        error: Box::new(e),
     }))
 }
 
-pub fn from_option_field<'e, T: FromVeekunField>(
+/// Like `from_field`, but with a default.
+///
+/// See `veekun::FromVeekunField::from_veekun_field` for details.
+pub fn from_option_field<T: FromVeekunField>(
     record: &csv::StringRecord, index: usize, default: T
-) -> Result<'e, T>
-    where <T as FromVeekunField>::VeekunErr: 'e + Debug
+) -> Result<T>
+    where <T as FromVeekunField>::VeekunErr: 'static + StdError
 {
     let field = get_field(record, index)?;
     from_veekun_field(get_line(record), index, field, Some(default))
 }
 
 /// Read a value from a CSV field. Useful for implementing `FromCsv`.
-pub fn from_field<'e, T: FromVeekunField>(
+pub fn from_field<T: FromVeekunField>(
     record: &csv::StringRecord, index: usize
-) -> Result<'e, T>
-    where <T as FromVeekunField>::VeekunErr: 'e + Debug
+) -> Result<T>
+    where <T as FromVeekunField>::VeekunErr: 'static + StdError
 {
     let field = get_field(record, index)?;
     from_veekun_field(get_line(record), index, field, None)
@@ -131,25 +156,29 @@ pub fn from_field<'e, T: FromVeekunField>(
 /// Abstracts creating an object by loading a CSV file.
 pub trait FromCsv: Sized {
     /// Creates a `Reader` from the path and passes it to `from_csv`.
-    fn from_csv_file<'e>(path: &Path) -> Result<'e, Self> {
+    fn from_csv_file(path: &Path) -> Result<Self> {
         let mut reader = csv::Reader::from_path(path)?;
         Self::from_csv(&mut reader)
     }
 
     /// Loads the object from an open CSV file.
-    fn from_csv<'e, R: Read>(reader: &mut csv::Reader<R>) -> Result<'e, Self>;
+    fn from_csv<R: Read>(reader: &mut csv::Reader<R>) -> Result<Self>;
 }
 
+/// Convenience trait for implementing `FromCsv` where each record is loaded
+/// individually.
 pub trait FromCsvIncremental: Sized { 
+    /// Create the initial state of the object.
     fn from_empty_csv() -> Self;
 
-    fn load_csv_record<'e>(
+    /// Update the object from a record.
+    fn load_csv_record(
         &mut self, record: csv::StringRecord
-    ) -> Result<'e, ()>;
+    ) -> Result<()>;
 }
 
 impl<T: FromCsvIncremental> FromCsv for T {
-    fn from_csv<'e, R: Read>(reader: &mut csv::Reader<R>) -> Result<'e, T> {
+    fn from_csv<R: Read>(reader: &mut csv::Reader<R>) -> Result<T> {
         let mut state = T::from_empty_csv();
         for result in reader.records() {
             let record = result?;

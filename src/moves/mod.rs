@@ -5,6 +5,7 @@ pub use self::effects::Effect;
 pub use self::meta::Ailment;
 pub use self::meta::Category;
 pub use self::meta::Flags;
+pub use self::meta::Metadata;
 
 use std::path::Path;
 use std::ffi::OsStr;
@@ -14,7 +15,7 @@ use to_pascal_case;
 use Type;
 use vcsv;
 use vcsv::FromCsv;
-use veekun::repr::VeekunOption;
+use VeekunOption;
 use versions::Generation;
 
 pub const CHANGEABLE_STATS: usize = 7;
@@ -134,9 +135,9 @@ impl Default for Move {
 pub struct MoveTable(pub Vec<Move>);
 
 impl MoveTable {
-    pub fn from_files<'e, S: AsRef<OsStr> + ?Sized>(
+    pub fn from_files<S: AsRef<OsStr> + ?Sized>(
         moves_file: &S, meta_file: &S, stat_changes_file: &S, flags_file: &S
-    ) -> vcsv::Result<'e, Self> {
+    ) -> vcsv::Result<Self> {
         let meta_table = meta::MetaTable::from_files(
             meta_file, stat_changes_file, flags_file)?;
         let moves_path = Path::new(moves_file);
@@ -157,9 +158,9 @@ impl vcsv::FromCsvIncremental for MoveTable {
         MoveTable(vec![])
     }
 
-    fn load_csv_record<'e>(
+    fn load_csv_record(
         &mut self, record: csv::StringRecord
-    ) -> vcsv::Result<'e, ()> {
+    ) -> vcsv::Result<()> {
         let id: usize = vcsv::from_field(&record, 0)?;
         if id > 10000 {
             return Ok(())

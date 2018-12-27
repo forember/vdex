@@ -165,5 +165,6 @@ fn print_efficacy() {
 fn sizes() {
     assert_eq!(size_of::<items::Berry>(), 6);
     assert_eq!(size_of::<items::Item>(), 40);
+    assert_eq!(size_of::<moves::Metadata>(), 24);
     assert_eq!(size_of::<moves::Move>(), 64);
 }

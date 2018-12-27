@@ -6,8 +6,13 @@ use Type;
 use vcsv;
 use vcsv::FromCsv;
 
+/// The total number of berries in pbirch.
 pub const BERRY_COUNT: usize = 64;
 
+/// Aka condition, the "type" of moves in contests.
+///
+/// The only use of condition in pbirch is the association with berry flavors,
+/// as contests are out of the scope of pbirch.
 #[EnumRepr(type = "u8")]
 pub enum ContestType {
     Cool = 0,
@@ -17,6 +22,31 @@ pub enum ContestType {
     Smart,
 }
 
+/// Berry flavor, which Pokémon may like or dislike.
+///
+/// Used in conjunction with nature to determine the effect of Figy, Wiki, Mago,
+/// Aguav, and Iapapa berries.
+///
+/// > [*[From Bulbapedia:]*](https://bulbapedia.bulbagarden.net/wiki/Flavor)
+/// > Flavor is a special set of attributes that certain foods in the Pokémon
+/// > world have.  The affected foods include Berries, Pokéblocks, Poffins,
+/// > Apricorns, Aprijuice, and malasadas. There are five different flavors:
+/// >
+/// > - Spicy (Japanese: 辛い spicy)
+/// > - Dry (Japanese: 渋い astringent)
+/// > - Sweet (Japanese: 甘い sweet)
+/// > - Bitter (Japanese: 苦い bitter)
+/// > - Sour (Japanese: 酸っぱい sour)
+/// >
+/// > Most of the foods can have more than one flavor attributed to them.
+/// > 
+/// > The primary flavor mechanic is taste preferences: different Pokémon like
+/// > and dislike different flavors, depending on their Nature. This usually
+/// > influences the effectiveness of the food. The flavors that a Pokémon likes
+/// > and dislikes correspond to the stat that its Nature raises or lowers. For
+/// > example, all Pokémon who like spicy flavors have a Nature that raises
+/// > their Attack, while those that dislike spicy flavors have a Nature that
+/// > lowers it.  Pokémon who have neutral Natures have no likes or dislikes.
 #[EnumRepr(type = "u8")]
 pub enum Flavor {
     Spicy = 0,
@@ -61,6 +91,15 @@ impl FromVeekun for Flavor {
     }
 }
 
+/// A held item that a Pokémon can use in battle.
+///
+/// > [*[From Bulbapedia:]*](https://bulbapedia.bulbagarden.net/wiki/Berry)
+/// > Berries (Japanese: きのみ Tree Fruit) are small, juicy, fleshy fruit. As
+/// > in the real world, a large variety exists in the Pokémon world, with a
+/// > large range of flavors, names, and effects. First found in the Generation
+/// > II games, many Berries have since become critical held items in battle,
+/// > where their various effects include HP and status condition restoration,
+/// > stat enhancement, and even damage negation.
 #[derive(Copy, Clone, Debug)]
 pub struct Berry {
     pub item_id: u16,
@@ -83,9 +122,9 @@ impl Default for Berry {
 pub struct BerryTable(pub [Berry; BERRY_COUNT]);
 
 impl BerryTable {
-    pub fn from_files<'e, S: AsRef<OsStr> + ?Sized>(
+    pub fn from_files<S: AsRef<OsStr> + ?Sized>(
         berries_file: &S, flavors_file: &S
-    ) -> vcsv::Result<'e, Self> {
+    ) -> vcsv::Result<Self> {
         let flavors_path = Path::new(flavors_file);
         let flavors_table = BerryFlavorTable::from_csv_file(flavors_path)?;
         let berries_path = Path::new(berries_file);
@@ -131,9 +170,9 @@ impl vcsv::FromCsvIncremental for BerryTable {
         BerryTable([Default::default(); BERRY_COUNT])
     }
     
-    fn load_csv_record<'e>(
+    fn load_csv_record(
         &mut self, record: csv::StringRecord
-    ) -> vcsv::Result<'e, ()> {
+    ) -> vcsv::Result<()> {
         let id: usize = vcsv::from_field(&record, 0)?;
         self[id - 1] = Berry {
             item_id: vcsv::from_field(&record, 1)?,
@@ -190,9 +229,9 @@ impl vcsv::FromCsvIncremental for BerryFlavorTable {
         }
     }
 
-    fn load_csv_record<'e>(
+    fn load_csv_record(
         &mut self, record: csv::StringRecord
-    ) -> vcsv::Result<'e, ()> {
+    ) -> vcsv::Result<()> {
         let id: usize = vcsv::from_field(&record, 0)?;
         let contest_type: ContestType = vcsv::from_field(&record, 1)?;
         let flavor = Flavor::from(contest_type);

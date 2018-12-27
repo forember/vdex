@@ -7,7 +7,7 @@ use moves::{CHANGEABLE_STATS, MOVE_COUNT};
 use Stat;
 use vcsv;
 use vcsv::FromCsv;
-use veekun::repr::VeekunOption;
+use VeekunOption;
 
 #[EnumRepr(type = "i8")]
 pub enum Ailment {
@@ -135,9 +135,9 @@ impl Default for Metadata {
 pub struct MetaTable(pub [Metadata; MOVE_COUNT]);
 
 impl MetaTable {
-    pub fn from_files<'e, S: AsRef<OsStr> + ?Sized>(
+    pub fn from_files<S: AsRef<OsStr> + ?Sized>(
         meta_file: &S, stat_changes_file: &S, flags_file: &S
-    ) -> vcsv::Result<'e, Self> {
+    ) -> vcsv::Result<Self> {
         let flags_path = Path::new(flags_file);
         let flags_table = FlagTable::from_csv_file(flags_path)?;
         let stat_changes_path = Path::new(stat_changes_file);
@@ -168,9 +168,9 @@ impl vcsv::FromCsvIncremental for MetaTable {
         MetaTable([Default::default(); MOVE_COUNT])
     }
 
-    fn load_csv_record<'e>(
+    fn load_csv_record(
         &mut self, record: csv::StringRecord
-    ) -> vcsv::Result<'e, ()> {
+    ) -> vcsv::Result<()> {
         let id: usize = vcsv::from_field(&record, 0)?;
         if id > 10000 {
             return Ok(())
@@ -218,9 +218,9 @@ impl vcsv::FromCsvIncremental for StatChangeTable {
         StatChangeTable(HashMap::new())
     }
 
-    fn load_csv_record<'e>(
+    fn load_csv_record(
         &mut self, record: csv::StringRecord
-    ) -> vcsv::Result<'e, ()> {
+    ) -> vcsv::Result<()> {
         let id = vcsv::from_field(&record, 0)?;
         if id > 10000 {
             return Ok(())
@@ -242,9 +242,9 @@ impl vcsv::FromCsvIncremental for FlagTable {
         FlagTable(HashMap::new())
     }
 
-    fn load_csv_record<'e>(
+    fn load_csv_record(
         &mut self, record: csv::StringRecord
-    ) -> vcsv::Result<'e, ()> {
+    ) -> vcsv::Result<()> {
         let id = vcsv::from_field(&record, 0)?;
         if id > 10000 {
             return Ok(())

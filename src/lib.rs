@@ -12,14 +12,14 @@ pub mod pokemon;
 pub(self) mod types;
 pub mod versions;
 
-pub use enums::Enum;
 pub use abilities::Ability;
+pub use enums::Enum;
 pub use natures::*;
 pub use types::*;
 
 use veekun::csv as vcsv;
+use veekun::repr::{FromVeekun, VeekunOption};
 use veekun::to_pascal_case;
-use veekun::repr::FromVeekun;
 
 #[cfg(test)]
 mod tests;

@@ -1,19 +1,35 @@
-//! Types and type efficacy.
-
 use enums::*;
 use FromVeekun;
 use vcsv;
 
+/// Total number of types in pbirch.
 pub const TYPE_COUNT: usize = 17;
 
+/// Level of efficacy of some type combination.
 #[EnumRepr(type = "i8")]
 pub enum Efficacy {
+    /// Attacks have no effect.
     Not = -2,
+    /// Attacks do half damage.
     NotVery,
+    /// Attacks do regular damage.
     Regular,
+    /// Attacks do double damage.
     Super,
 }
 
+/// The type of a Pokémon or move.
+///
+/// > [*[From Bulbapedia:]*](https://bulbapedia.bulbagarden.net/wiki/Type) Types
+/// > (Japanese: タイプ Type) are properties for Pokémon and their moves. . . .
+/// >
+/// > A Pokémon may have either one or two types: For instance, Charmander is a
+/// > Fire type, while Bulbasaur is both a Grass type and a Poison type. . . .
+/// >
+/// > A move has exactly one type. The type of a damaging move typically defines
+/// > which types of Pokémon it is super effective against, which types of
+/// > Pokémon it is not very effective against, and which types of Pokémon it is
+/// > completely ineffective against.
 #[EnumRepr(type = "u8")]
 pub enum Type {
     Normal = 0,
@@ -57,14 +73,16 @@ impl FromVeekun for Type {
     }
 }
 
-pub struct EfficacyTable(pub [Efficacy; TYPE_COUNT*TYPE_COUNT]);
+/// Table of the efficacies of type combinations.
+pub struct EfficacyTable([Efficacy; TYPE_COUNT*TYPE_COUNT]);
 
 impl EfficacyTable {
+    /// Get the efficacy of a type combination.
     pub fn efficacy(&self, damage: Type, target: Type) -> Efficacy {
-        return self.0[EfficacyTable::index(damage, target)];
+        self.0[EfficacyTable::index(damage, target)]
     }
 
-    pub fn index(damage: Type, target: Type) -> usize {
+    fn index(damage: Type, target: Type) -> usize {
         ((damage.repr() as usize) * TYPE_COUNT) + (target.repr() as usize)
     }
 }
@@ -74,9 +92,9 @@ impl vcsv::FromCsvIncremental for EfficacyTable {
         EfficacyTable([Efficacy::Regular; TYPE_COUNT*TYPE_COUNT])
     }
 
-    fn load_csv_record<'e>(
+    fn load_csv_record(
         &mut self, record: csv::StringRecord
-    ) -> vcsv::Result<'e, ()> {
+    ) -> vcsv::Result<()> {
         let damage = vcsv::from_field(&record, 0)?;
         let target = vcsv::from_field(&record, 1)?;
         let efficacy = vcsv::from_field(&record, 2)?;

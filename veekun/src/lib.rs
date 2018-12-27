@@ -3,6 +3,7 @@
 pub mod csv;
 pub mod repr;
 
+/// Convert a Veekun-standard `kebab-case` identifier to `PascalCase`.
 pub fn to_pascal_case(s: &str) -> String {
     let mut builder = String::new();
     for word in s.split('-') {

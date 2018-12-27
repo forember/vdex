@@ -1,7 +1,14 @@
-//! Abilities and battle hooks for their effects.
-
 use enums::*;
 
+/// An ability provides a passive effect in battle or in the overworld.
+///
+/// > [*[From Bulbapedia:]*](https://bulbapedia.bulbagarden.net/wiki/Ability) An
+/// > Ability (Japanese: 特性 ability) is a game mechanic introduced in
+/// > Generation III that provides a passive effect in battle or in the
+/// > overworld. Individual Pokémon may have only one Ability at a time. [An
+/// > Ability cannot] be changed after a Pokémon was obtained except by
+/// > Evolution—where the new Ability is determined by the former Ability—and
+/// > form change. Not every Ability is beneficial; some will hinder the user.
 #[EnumRepr(type = "u8")]
 pub enum Ability {
     Stench = 1,
