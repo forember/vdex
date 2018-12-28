@@ -1,6 +1,10 @@
 use enums::*;
 use FromVeekun;
 
+/// The effect of a move or set of moves.
+///
+/// Some effects are shared among several moves, whereas others are unique to a
+/// single move.
 #[EnumRepr(type = "u16")]
 pub enum Effect {
     // Generic

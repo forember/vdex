@@ -1,4 +1,4 @@
-//! Items and related metadata.
+//! Items and related data.
 
 pub(self) mod berries;
 pub(self) mod flags;
@@ -188,8 +188,6 @@ impl FromVeekun for FlingEffect {
 /// > Pokémon, or to access a new area.
 #[derive(Debug)]
 pub struct Item {
-    /// The Veekun ID for the item.
-    pub id: u16,
     /// The pbirch name for the item.
     pub name: String,
     /// The item's category.
@@ -264,7 +262,6 @@ impl vcsv::FromCsvIncremental for ItemTable {
         let id = vcsv::from_field(&record, 0)?;
         let fling_power: VeekunOption<_> = vcsv::from_field(&record, 4)?;
         self.0.insert(id, Item {
-            id,
             name: to_pascal_case(vcsv::get_field(&record, 1)?),
             category: vcsv::from_field(&record, 2)?,
             cost: vcsv::from_field(&record, 3)?,
