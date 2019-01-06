@@ -1,6 +1,7 @@
 //! Tools for dealing with the Veekun CSV files included with the library.
 
 pub mod csv;
+pub mod data;
 pub mod repr;
 
 /// Convert a Veekun-standard `kebab-case` identifier to `PascalCase`.

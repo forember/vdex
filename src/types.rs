@@ -1,9 +1,8 @@
 use enums::*;
 use FromVeekun;
 use vcsv;
-
-/// Total number of types in pbirch.
-pub const TYPE_COUNT: usize = 17;
+use vcsv::FromCsv;
+use vdata;
 
 /// Level of efficacy of some type combination.
 #[EnumRepr(type = "i8")]
@@ -74,22 +73,34 @@ impl FromVeekun for Type {
 }
 
 /// Table of the efficacies of type combinations.
-pub struct EfficacyTable([Efficacy; TYPE_COUNT*TYPE_COUNT]);
+pub struct EfficacyTable([[Efficacy; Type::COUNT]; Type::COUNT]);
 
 impl EfficacyTable {
-    /// Get the efficacy of a type combination.
-    pub fn efficacy(&self, damage: Type, target: Type) -> Efficacy {
-        self.0[EfficacyTable::index(damage, target)]
+    /// Creates a type efficacy table from the included Veekun CSV data.
+    pub fn new() -> Self {
+        Self::from_csv_data(vdata::EFFICACY).unwrap()
     }
+}
 
-    fn index(damage: Type, target: Type) -> usize {
-        ((damage.repr() as usize) * TYPE_COUNT) + (target.repr() as usize)
+impl std::ops::Index<(Type, Type)> for EfficacyTable {
+    type Output = Efficacy;
+
+    /// Get the efficacy of a (damage, target) type combination.
+    fn index<'a>(&'a self, index: (Type, Type)) -> &'a Efficacy {
+        &self.0[index.0.repr() as usize][index.1.repr() as usize]
+    }
+}
+
+impl std::ops::IndexMut<(Type, Type)> for EfficacyTable {
+    /// Access the efficacy of a (damage, target) type combination mutably.
+    fn index_mut<'a>(&'a mut self, index: (Type, Type)) -> &'a mut Efficacy {
+        &mut self.0[index.0.repr() as usize][index.1.repr() as usize]
     }
 }
 
 impl vcsv::FromCsvIncremental for EfficacyTable {
     fn from_empty_csv() -> Self {
-        EfficacyTable([Efficacy::Regular; TYPE_COUNT*TYPE_COUNT])
+        EfficacyTable([[Efficacy::Regular; Type::COUNT]; Type::COUNT])
     }
 
     fn load_csv_record(
@@ -98,7 +109,7 @@ impl vcsv::FromCsvIncremental for EfficacyTable {
         let damage = vcsv::from_field(&record, 0)?;
         let target = vcsv::from_field(&record, 1)?;
         let efficacy = vcsv::from_field(&record, 2)?;
-        self.0[EfficacyTable::index(damage, target)] = efficacy;
+        self[(damage, target)] = efficacy;
         Ok(())
     }
 }

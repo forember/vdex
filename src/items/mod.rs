@@ -9,13 +9,12 @@ pub use self::berries::Flavor;
 pub use self::flags::Flags;
 
 use std::collections::HashMap;
-use std::ffi::OsStr;
-use std::path::Path;
 use enums::*;
 use FromVeekun;
 use to_pascal_case;
 use vcsv;
 use vcsv::FromCsv;
+use vdata;
 use VeekunOption;
 
 /// Broad item category; not used for anything other than organization.
@@ -212,19 +211,15 @@ pub struct Item {
 pub struct ItemTable(pub HashMap<u16, Item>);
 
 impl ItemTable {
-    /// Create an item table from the provided CSV files.
-    pub fn from_files<S: AsRef<OsStr> + ?Sized>(
-        items_file: &S, flags_file: &S, berries_file: &S, flavors_file: &S
-    ) -> vcsv::Result<Self> {
-        let berries_table
-            = berries::BerryTable::from_files(berries_file, flavors_file)?;
-        let flags_path = Path::new(flags_file);
-        let flags_table = flags::FlagTable::from_csv_file(flags_path)?;
-        let items_path = Path::new(items_file);
-        let mut items_table = ItemTable::from_csv_file(items_path)?;
+    /// Create an item table from the included CSV data.
+    pub fn new() -> Self {
+        let berries_table = berries::BerryTable::new();
+        let flags_table
+            = flags::FlagTable::from_csv_data(vdata::ITEM_FLAGS).unwrap();
+        let mut items_table = ItemTable::from_csv_data(vdata::ITEMS).unwrap();
         items_table.set_flags(&flags_table);
         items_table.set_berries(&berries_table);
-        Ok(items_table)
+        items_table
     }
 
     fn set_flags(&mut self, flag_table: &flags::FlagTable) {

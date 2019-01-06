@@ -1,12 +1,11 @@
 use std::collections::HashMap;
-use std::path::Path;
-use std::ffi::OsStr;
 use enums::*;
 use FromVeekun;
 use moves::{CHANGEABLE_STATS, MOVE_COUNT};
 use Stat;
 use vcsv;
 use vcsv::FromCsv;
+use vdata;
 use VeekunOption;
 
 /// Aka status condition; an ailment caused by a move.
@@ -249,19 +248,14 @@ impl Default for Meta {
 pub struct MetaTable(pub [Meta; MOVE_COUNT]);
 
 impl MetaTable {
-    pub fn from_files<S: AsRef<OsStr> + ?Sized>(
-        meta_file: &S, stat_changes_file: &S, flags_file: &S
-    ) -> vcsv::Result<Self> {
-        let flags_path = Path::new(flags_file);
-        let flags_table = FlagTable::from_csv_file(flags_path)?;
-        let stat_changes_path = Path::new(stat_changes_file);
+    pub fn new() -> Self {
+        let flags_table = FlagTable::from_csv_data(vdata::MOVE_FLAGS).unwrap();
         let stat_changes_table
-            = StatChangeTable::from_csv_file(stat_changes_path)?;
-        let meta_path = Path::new(meta_file);
-        let mut meta_table = MetaTable::from_csv_file(meta_path)?;
+            = StatChangeTable::from_csv_data(vdata::MOVE_STAT_CHANGES).unwrap();
+        let mut meta_table = MetaTable::from_csv_data(vdata::MOVE_META).unwrap();
         meta_table.set_stat_changes(&stat_changes_table);
         meta_table.set_flags(&flags_table);
-        Ok(meta_table)
+        meta_table
     }
 
     fn set_stat_changes(&mut self, stat_changes_table: &StatChangeTable) {

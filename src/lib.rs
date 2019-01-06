@@ -18,8 +18,17 @@ pub use natures::*;
 pub use types::*;
 
 use veekun::csv as vcsv;
+use veekun::data as vdata;
 use veekun::repr::{FromVeekun, VeekunOption};
 use veekun::to_pascal_case;
 
 #[cfg(test)]
 mod tests;
+
+pub struct Pokedex {
+    pub efficacy: EfficacyTable,
+    pub items: items::ItemTable,
+    pub moves: moves::MoveTable,
+    pub palace: PalaceTable,
+    pub species: pokemon::SpeciesTable,
+}

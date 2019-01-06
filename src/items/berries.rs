@@ -1,10 +1,9 @@
-use std::ffi::OsStr;
-use std::path::Path;
 use enums::*;
 use FromVeekun;
 use Type;
 use vcsv;
 use vcsv::FromCsv;
+use vdata;
 
 /// The total number of berries in pbirch.
 pub const BERRY_COUNT: usize = 64;
@@ -122,15 +121,13 @@ impl Default for Berry {
 pub struct BerryTable(pub [Berry; BERRY_COUNT]);
 
 impl BerryTable {
-    pub fn from_files<S: AsRef<OsStr> + ?Sized>(
-        berries_file: &S, flavors_file: &S
-    ) -> vcsv::Result<Self> {
-        let flavors_path = Path::new(flavors_file);
-        let flavors_table = BerryFlavorTable::from_csv_file(flavors_path)?;
-        let berries_path = Path::new(berries_file);
-        let mut berries_table = BerryTable::from_csv_file(berries_path)?;
+    pub fn new() -> Self {
+        let flavors_table
+            = BerryFlavorTable::from_csv_data(vdata::BERRY_FLAVORS).unwrap();
+        let mut berries_table
+            = BerryTable::from_csv_data(vdata::BERRIES).unwrap();
         berries_table.set_flavors(&flavors_table);
-        Ok(berries_table)
+        berries_table
     }
 
     fn set_flavors(&mut self, flavors: &BerryFlavorTable) {

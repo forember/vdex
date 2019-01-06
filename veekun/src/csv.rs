@@ -2,7 +2,7 @@
 
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter};
-use std::io::Read;
+use std::io::{Cursor, Read};
 use std::path::Path;
 use repr::FromVeekunField;
 
@@ -155,6 +155,12 @@ pub fn from_field<T: FromVeekunField>(
 
 /// Abstracts creating an object by loading a CSV file.
 pub trait FromCsv: Sized {
+    /// Creates a `Reader` from the data and passes it to `from_csv`.
+    fn from_csv_data<T: AsRef<[u8]>>(data: T) -> Result<Self> {
+        let mut reader = csv::Reader::from_reader(Cursor::new(data));
+        Self::from_csv(&mut reader)
+    }
+
     /// Creates a `Reader` from the path and passes it to `from_csv`.
     fn from_csv_file(path: &Path) -> Result<Self> {
         let mut reader = csv::Reader::from_path(path)?;

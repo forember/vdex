@@ -9,14 +9,13 @@ pub use self::meta::Category;
 pub use self::meta::Flags;
 pub use self::meta::Meta;
 
-use std::path::Path;
-use std::ffi::OsStr;
 use enums::*;
 use FromVeekun;
 use to_pascal_case;
 use Type;
 use vcsv;
 use vcsv::FromCsv;
+use vdata;
 use VeekunOption;
 use versions::Generation;
 
@@ -190,16 +189,12 @@ impl Default for Move {
 pub struct MoveTable(pub Vec<Move>);
 
 impl MoveTable {
-    /// Create a move table from the provided CSV files.
-    pub fn from_files<S: AsRef<OsStr> + ?Sized>(
-        moves_file: &S, meta_file: &S, stat_changes_file: &S, flags_file: &S
-    ) -> vcsv::Result<Self> {
-        let meta_table = meta::MetaTable::from_files(
-            meta_file, stat_changes_file, flags_file)?;
-        let moves_path = Path::new(moves_file);
-        let mut moves_table = MoveTable::from_csv_file(moves_path)?;
+    /// Create a move table from the included Veekun CSV data.
+    pub fn new() -> Self {
+        let meta_table = meta::MetaTable::new();
+        let mut moves_table = MoveTable::from_csv_data(vdata::MOVES).unwrap();
         moves_table.set_meta(&meta_table);
-        Ok(moves_table)
+        moves_table
     }
 
     fn set_meta(&mut self, meta_table: &meta::MetaTable) {

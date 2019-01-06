@@ -2,10 +2,9 @@ use enums::*;
 use moves::BattleStyle;
 use items::Flavor;
 use vcsv;
+use vcsv::FromCsv;
+use vdata;
 use FromVeekun;
-
-/// The total number of natures in pbirch.
-pub const NATURE_COUNT: usize = 25;
 
 /// A Pokémon's nature affects its stats and some berry effects.
 ///
@@ -165,8 +164,8 @@ impl FromVeekun for Stat {
 
 /// Half of the table determining Battle Palace behavior. See `PalaceTable`.
 pub struct HalfPalaceTable {
-    pub attack: [u8; NATURE_COUNT],
-    pub defense: [u8; NATURE_COUNT],
+    pub attack: [u8; Nature::COUNT],
+    pub defense: [u8; Nature::COUNT],
 }
 
 impl HalfPalaceTable {
@@ -192,16 +191,23 @@ pub struct PalaceTable {
     pub high: HalfPalaceTable,
 }
 
+impl PalaceTable {
+    /// Create a palace table from the included Veekun CSV data.
+    pub fn new() -> Self {
+        Self::from_csv_data(vdata::PALACE).unwrap()
+    }
+}
+
 impl vcsv::FromCsvIncremental for PalaceTable {
     fn from_empty_csv() -> Self {
         PalaceTable {
             low: HalfPalaceTable {
-                attack: [0; NATURE_COUNT],
-                defense: [0; NATURE_COUNT],
+                attack: [0; Nature::COUNT],
+                defense: [0; Nature::COUNT],
             },
             high: HalfPalaceTable {
-                attack: [0; NATURE_COUNT],
-                defense: [0; NATURE_COUNT],
+                attack: [0; Nature::COUNT],
+                defense: [0; Nature::COUNT],
             },
         }
     }
