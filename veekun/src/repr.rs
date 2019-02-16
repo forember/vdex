@@ -93,6 +93,22 @@ impl<V> StdError for VeekunError<V>
     }
 }
 
+/// Cheap `!` knockoff.
+#[derive(Copy, Clone, Debug)]
+pub enum NeverError {}
+
+impl StdError for NeverError {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        unreachable!()
+    }
+}
+
+impl Display for NeverError {
+    fn fmt(&self, _f: &mut Formatter) -> std::fmt::Result {
+        unreachable!()
+    }
+}
+
 /// Blanket implementation for `FromVeekun` types.
 impl<T> FromVeekunField for T
     where T: FromVeekun,
@@ -120,6 +136,25 @@ impl<T> FromVeekunField for T
     }
 }
 
+/// Wrapper for `String` that implements `FromVeekunField`.
+pub struct VeekunString(String);
+
+impl Into<String> for VeekunString {
+    fn into(self) -> String {
+        self.0
+    }
+}
+
+impl FromVeekunField for VeekunString {
+    type VeekunErr = NeverError;
+
+    fn from_veekun_field(
+        field: &str, _default: Option<Self>
+    ) -> Result<Self, Self::VeekunErr> {
+        Ok(VeekunString(String::from(field)))
+    }
+}
+
 /// Wrapper for `Option<T>` that implements `FromVeekunField`, but does not
 /// use `Some()` or `None` in CSV field.
 ///
@@ -133,6 +168,12 @@ pub struct VeekunOption<T>(Option<T>);
 impl<T> Into<Option<T>> for VeekunOption<T> {
     fn into(self) -> Option<T> {
         self.0
+    }
+}
+
+impl Into<Option<String>> for VeekunOption<VeekunString> {
+    fn into(self) -> Option<String> {
+        self.0.map(|s| s.into())
     }
 }
 

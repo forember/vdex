@@ -1,4 +1,5 @@
 use enums::*;
+use FromVeekun;
 
 /// An ability provides a passive effect in battle or in the overworld.
 ///
@@ -175,4 +176,12 @@ pub enum Ability {
     VictoryStar,
     Turboblaze,
     Teravolt,
+}
+
+impl FromVeekun for Ability {
+    type Intermediate = u8;
+
+    fn from_veekun(value: u8) -> Option<Self> {
+        Ability::from_repr(value)
+    }
 }
