@@ -128,33 +128,33 @@ bitflags! {
     /// Miscellaneous bitflags for moves.
     pub struct Flags: u16 {
         /// The move makes contact with the target.
-        const Contact = 0x0001;
+        const CONTACT = 0x0001;
         /// The move requires a turn to charge before attacking.
-        const Charge = 0x0002;
+        const CHARGE = 0x0002;
         /// The move requires a turn to recharge after attacking.
-        const Recharge = 0x0004;
+        const RECHARGE = 0x0004;
         /// The move is blocked by Detect and Protect.
-        const Protect = 0x0008;
+        const PROTECT = 0x0008;
         /// The move is reflected by Magic Coat and Magic Bounce.
-        const Reflectable = 0x0010;
+        const REFLECTABLE = 0x0010;
         /// The move is stolen by Snatch.
-        const Snatch = 0x0020;
+        const SNATCH = 0x0020;
         /// The move is copied by Mirror Move.
-        const Mirror = 0x0040;
+        const MIRROR = 0x0040;
         /// The move is boosted by Iron Fist.
-        const Punch = 0x0080;
+        const PUNCH = 0x0080;
         /// The move is blocked by Soundproof.
-        const Sound = 0x0100;
+        const SOUND = 0x0100;
         /// The move is unusable under Gravity.
-        const Gravity = 0x0200;
+        const GRAVITY = 0x0200;
         /// The move can be used while frozen to thaw.
-        const Defrost = 0x0400;
+        const DEFROST = 0x0400;
         /// Affects triple battles; unused in pbirch.
-        const Distance = 0x0800;
+        const DISTANCE = 0x0800;
         /// The move is blocked by Heal Block.
-        const Heal = 0x1000;
+        const HEAL = 0x1000;
         /// The move ignores Substitute.
-        const Authentic = 0x2000;
+        const AUTHENTIC = 0x2000;
     }
 }
 
