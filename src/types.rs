@@ -1,8 +1,8 @@
-use enums::*;
-use FromVeekun;
-use vcsv;
-use vcsv::FromCsv;
-use vdata;
+use crate::enums::*;
+use crate::FromVeekun;
+use crate::vcsv;
+use crate::vcsv::FromCsv;
+use crate::vdata;
 
 /// Level of efficacy of some type combination.
 #[EnumRepr(type = "i8")]

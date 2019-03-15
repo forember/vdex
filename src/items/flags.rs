@@ -1,6 +1,6 @@
-use FromVeekun;
+use crate::FromVeekun;
 use std::collections::HashMap;
-use vcsv;
+use crate::vcsv;
 
 bitflags! {
     /// Miscellaneous bitflags for items.

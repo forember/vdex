@@ -28,96 +28,16 @@
 //! The code generated does not require std.
 //!
 //! # Examples
-//! ```
-//! extern crate vdex;
-//! extern crate enum_repr;
-//! extern crate libc;
-//!
-//! use libc::*;
-//! 
-//! use vdex::Enum;
-//! use enum_repr::EnumRepr;
-//! 
-//! #[EnumRepr(type = "c_int")]
-//! pub enum IpProto {
-//!     IP = IPPROTO_IP,
-//!     IPv6 = IPPROTO_IPV6,
-//!     // …
-//! }
-//! 
-//! fn main() {
-//!     assert_eq!(IpProto::IP.repr(), IPPROTO_IP);
-//!     assert_eq!(IpProto::from_repr(IPPROTO_IPV6), Some(IpProto::IPv6));
-//!     assert!(IpProto::from_repr(12345).is_none());
-//! }
-//! ```
-//!
-//! ```
-//! # extern crate vdex;
-//! # extern crate enum_repr;
-//! # extern crate libc;
-//! #
-//! # use libc::*;
-//! #
-//! # use vdex::Enum;
-//! # use enum_repr::EnumRepr;
-//! #
-//! #[EnumRepr(type = "c_int")]
-//! pub enum InetDomain {
-//!     Inet = 2,
-//!     // …
-//! }
-//!
-//! #[EnumRepr(type = "c_int")]
-//! pub enum SocketType {
-//!     Stream = 1,
-//!     // …
-//! }
-//!
-//! // …
-//!
-//! # fn main() { unsafe {
-//! assert!(
-//!    socket(InetDomain::Inet.repr(), SocketType::Stream.repr(), 0) != -1
-//! );
-//! # }}
-//! ```
-//!
-//! ```no_run
-//! # extern crate vdex;
-//! # extern crate enum_repr;
-//! # extern crate libc;
-//! #
-//! # use libc::*;
-//! #
-//! # use vdex::Enum;
-//! # use enum_repr::EnumRepr;
-//! #
-//! // compatible with documentation and other attributes
-//! 
-//! /// Represents a layer 3 network protocol.
-//! #[EnumRepr(type = "c_int")]
-//! pub enum IpProto {
-//!     IP = IPPROTO_IP,
-//!     IPv6 = IPPROTO_IPV6,
-//!     // …
-//! }
-//! #
-//! # fn main() {}
-//! ```
 //!
 //! Discriminants can be implicit if `implicit = true` (default):
 //! ```
 //! # extern crate vdex;
 //! # extern crate enum_repr;
-//! # extern crate libc;
-//! #
-//! # use libc::*;
 //! #
 //! # use vdex::Enum;
 //! # use enum_repr::EnumRepr;
 //! #
-//! #[EnumRepr(type = "c_int")]
+//! #[EnumRepr(type = "i32")]
 //! pub enum Test {
 //!     A,
 //!     B,
@@ -136,14 +56,11 @@
 //! ```compile_fail
 //! # extern crate vdex;
 //! # extern crate enum_repr;
-//! # extern crate libc;
-//! #
-//! # use libc::*;
 //! #
 //! # use vdex::Enum;
 //! # use enum_repr::EnumRepr;
 //! #
-//! #[EnumRepr(type = "c_int", implicit = false)]
+//! #[EnumRepr(type = "i32", implicit = false)]
 //! pub enum Test {
 //!     A,
 //!     B = 3

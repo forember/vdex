@@ -1,16 +1,16 @@
-use Ability;
-use Efficacy;
-use Nature;
-use Type;
-use Stat;
-use items;
-use moves;
-use pokemon;
-use versions;
+use crate::Ability;
+use crate::Efficacy;
+use crate::Nature;
+use crate::Type;
+use crate::Stat;
+use crate::items;
+use crate::moves;
+use crate::pokemon;
+use crate::versions;
 
-use Enum;
-use Pokedex;
-use to_pascal_case;
+use crate::Enum;
+use crate::Pokedex;
+use crate::to_pascal_case;
 
 #[test]
 fn assert_sanity() {

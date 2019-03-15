@@ -1,5 +1,5 @@
-use enums::*;
-use FromVeekun;
+use crate::enums::*;
+use crate::FromVeekun;
 
 /// An ability provides a passive effect in battle or in the overworld.
 ///

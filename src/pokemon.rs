@@ -2,19 +2,19 @@
 
 use std::collections::HashMap;
 use std::iter::repeat;
-use Ability;
-use enums::*;
-use FromVeekun;
-use moves::LearnMethod;
-use Stat;
-use to_pascal_case;
-use Type;
-use vcsv;
-use vcsv::FromCsv;
-use vdata;
-use VeekunOption;
+use crate::Ability;
+use crate::enums::*;
+use crate::FromVeekun;
+use crate::moves::LearnMethod;
+use crate::Stat;
+use crate::to_pascal_case;
+use crate::Type;
+use crate::vcsv;
+use crate::vcsv::FromCsv;
+use crate::vdata;
+use crate::VeekunOption;
 use veekun::repr::VeekunString;
-use versions::{Generation, VersionGroup};
+use crate::versions::{Generation, VersionGroup};
 
 /// The number of stats that exist out of battle (all but accuracy and evasion).
 pub const PERMANENT_STATS: usize = 6;
@@ -308,7 +308,7 @@ impl PokemonTable {
     }
 
     fn set_abilities(&mut self, ability_table: &AbilityTable) {
-        for mut species in self.0.iter_mut() {
+        for species in self.0.iter_mut() {
             for mut pokemon in species {
                 let i = (pokemon.id - 1) as usize;
                 let options = [ability_table.0[i][0], ability_table.0[i][0]];
@@ -319,7 +319,7 @@ impl PokemonTable {
     }
 
     fn set_forms(&mut self, form_table: &FormTable) {
-        for mut species in self.0.iter_mut() {
+        for species in self.0.iter_mut() {
             for mut pokemon in species {
                 let i = (pokemon.id - 1) as usize;
                 pokemon.forms = form_table.0[i].clone();
@@ -328,7 +328,7 @@ impl PokemonTable {
     }
 
     fn set_moves(&mut self, move_table: &PokemonMoveTable) {
-        for mut species in self.0.iter_mut() {
+        for species in self.0.iter_mut() {
             for mut pokemon in species {
                 let i = (pokemon.id - 1) as usize;
                 pokemon.moves = move_table.0[i].clone();
@@ -337,7 +337,7 @@ impl PokemonTable {
     }
 
     fn set_types(&mut self, type_table: &TypeTable) {
-        for mut species in self.0.iter_mut() {
+        for species in self.0.iter_mut() {
             for mut pokemon in species {
                 let i = (pokemon.id - 1) as usize;
                 let options = type_table.0[i];
@@ -347,7 +347,7 @@ impl PokemonTable {
     }
 
     fn set_stats(&mut self, stat_table: &StatTable) {
-        for mut species in self.0.iter_mut() {
+        for species in self.0.iter_mut() {
             for mut pokemon in species {
                 let i = (pokemon.id - 1) as usize;
                 pokemon.stats = stat_table.0[i];

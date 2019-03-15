@@ -1,12 +1,12 @@
 use std::collections::HashMap;
-use enums::*;
-use FromVeekun;
-use moves::{CHANGEABLE_STATS, MOVE_COUNT};
-use Stat;
-use vcsv;
-use vcsv::FromCsv;
-use vdata;
-use VeekunOption;
+use crate::enums::*;
+use crate::FromVeekun;
+use crate::moves::{CHANGEABLE_STATS, MOVE_COUNT};
+use crate::Stat;
+use crate::vcsv;
+use crate::vcsv::FromCsv;
+use crate::vdata;
+use crate::VeekunOption;
 
 /// Aka status condition; an ailment caused by a move.
 ///

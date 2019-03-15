@@ -1,7 +1,7 @@
 //! Game versions and generations.
 
-use enums::*;
-use FromVeekun;
+use crate::enums::*;
+use crate::FromVeekun;
 
 #[EnumRepr(type = "u8")]
 pub enum Generation {
@@ -56,8 +56,8 @@ pub enum VersionGroup {
     BlackWhite2,
 }
 
-use versions::Version as V;
-use versions::VersionGroup as VG;
+use crate::versions::Version as V;
+use crate::versions::VersionGroup as VG;
 
 impl FromVeekun for Generation {
     type Intermediate = u8;

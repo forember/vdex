@@ -9,15 +9,15 @@ pub use self::meta::Category;
 pub use self::meta::Flags;
 pub use self::meta::Meta;
 
-use enums::*;
-use FromVeekun;
-use to_pascal_case;
-use Type;
-use vcsv;
-use vcsv::FromCsv;
-use vdata;
-use VeekunOption;
-use versions::Generation;
+use crate::enums::*;
+use crate::FromVeekun;
+use crate::to_pascal_case;
+use crate::Type;
+use crate::vcsv;
+use crate::vcsv::FromCsv;
+use crate::vdata;
+use crate::VeekunOption;
+use crate::versions::Generation;
 
 /// The number of stats directly changeable by moves (all but HP).
 pub const CHANGEABLE_STATS: usize = 7;

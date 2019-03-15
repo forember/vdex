@@ -1,9 +1,9 @@
-use enums::*;
-use FromVeekun;
-use Type;
-use vcsv;
-use vcsv::FromCsv;
-use vdata;
+use crate::enums::*;
+use crate::FromVeekun;
+use crate::Type;
+use crate::vcsv;
+use crate::vcsv::FromCsv;
+use crate::vdata;
 
 /// The total number of berries in pbirch.
 pub const BERRY_COUNT: usize = 64;

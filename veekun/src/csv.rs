@@ -4,7 +4,7 @@ use std::error::Error as StdError;
 use std::fmt::{Display, Formatter};
 use std::io::{Cursor, Read};
 use std::path::Path;
-use repr::FromVeekunField;
+use crate::repr::FromVeekunField;
 
 /// Miscellaneous error intended for `Error::Veekun`. Just wraps a string
 /// literal.

@@ -12,10 +12,10 @@ pub mod pokemon;
 pub(self) mod types;
 pub mod versions;
 
-pub use abilities::Ability;
-pub use enums::Enum;
-pub use natures::*;
-pub use types::*;
+pub use self::abilities::Ability;
+pub use self::enums::Enum;
+pub use self::natures::*;
+pub use self::types::*;
 
 use veekun::csv as vcsv;
 use veekun::data as vdata;

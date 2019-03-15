@@ -1,5 +1,5 @@
-use enums::*;
-use FromVeekun;
+use crate::enums::*;
+use crate::FromVeekun;
 
 /// The effect of a move or set of moves.
 ///

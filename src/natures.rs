@@ -1,10 +1,10 @@
-use enums::*;
-use moves::BattleStyle;
-use items::Flavor;
-use vcsv;
-use vcsv::FromCsv;
-use vdata;
-use FromVeekun;
+use crate::enums::*;
+use crate::moves::BattleStyle;
+use crate::items::Flavor;
+use crate::vcsv;
+use crate::vcsv::FromCsv;
+use crate::vdata;
+use crate::FromVeekun;
 
 /// A Pokémon's nature affects its stats and some berry effects.
 ///

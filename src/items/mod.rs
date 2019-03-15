@@ -9,13 +9,13 @@ pub use self::berries::Flavor;
 pub use self::flags::Flags;
 
 use std::collections::HashMap;
-use enums::*;
-use FromVeekun;
-use to_pascal_case;
-use vcsv;
-use vcsv::FromCsv;
-use vdata;
-use VeekunOption;
+use crate::enums::*;
+use crate::FromVeekun;
+use crate::to_pascal_case;
+use crate::vcsv;
+use crate::vcsv::FromCsv;
+use crate::vdata;
+use crate::VeekunOption;
 
 /// Broad item category; not used for anything other than organization.
 #[EnumRepr(type = "u8")]
