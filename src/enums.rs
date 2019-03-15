@@ -194,7 +194,10 @@ pub use enum_repr::EnumRepr;
 
 /// All of the vdex C-style enums implement this trait, which allows for easy
 /// conversion between the underlying integer representation and the enum type.
-pub trait Enum<T: Copy> where Self: 'static + Sized + Copy {
+pub trait Enum where Self: 'static + Sized + Copy {
+    /// The underlying integer representation.
+    type Repr: Copy;
+
     /// The total number of enum values.
     const COUNT: usize;
 
@@ -202,9 +205,9 @@ pub trait Enum<T: Copy> where Self: 'static + Sized + Copy {
     const VALUES: &'static [Self];
 
     /// Returns the underlying representation of the enum value.
-    fn repr(self) -> T;
+    fn repr(self) -> Self::Repr;
 
     /// Returns the enum value corresponding to the passed representation, or
     /// `None` if no such enum value exists.
-    fn from_repr(x: T) -> Option<Self>;
+    fn from_repr(x: Self::Repr) -> Option<Self>;
 }
