@@ -7,6 +7,7 @@ use enums::*;
 use FromVeekun;
 use moves::LearnMethod;
 use Stat;
+use to_pascal_case;
 use Type;
 use vcsv;
 use vcsv::FromCsv;
@@ -74,10 +75,19 @@ pub enum Gender {
 }
 
 /// Either one or two elements.
-#[derive(Clone, Debug)]
-pub enum OneOrTwo<T: Clone> {
+#[derive(Copy, Clone, Debug)]
+pub enum OneOrTwo<T: Copy> {
     One(T),
     Two(T, T),
+}
+
+impl<T: Copy> OneOrTwo<T> {
+    fn from_options(array: [Option<T>; 2]) -> Option<Self> {
+        array[0].and_then(|first| Some(match array[1] {
+            Some(second) => OneOrTwo::Two(first, second),
+            None => OneOrTwo::One(first),
+        })).or_else(|| array[1].and_then(|second| Some(OneOrTwo::One(second))))
+    }
 }
 
 impl FromVeekun for EggGroup {
@@ -117,7 +127,7 @@ impl vcsv::FromCsvIncremental for AbilityTable {
         let pokemon_id: usize = vcsv::from_field(&record, 0)?;
         let ability = vcsv::from_field(&record, 1)?;
         let slot: usize = vcsv::from_field(&record, 3)?;
-        self.0[pokemon_id][slot] = Some(ability);
+        self.0[pokemon_id - 1][slot - 1] = Some(ability);
         Ok(())
     }
 }
@@ -142,11 +152,11 @@ impl vcsv::FromCsvIncremental for FormTable {
         let id = vcsv::from_field(&record, 0)?;
         let name: VeekunOption<VeekunString> = vcsv::from_field(&record, 1)?;
         let pokemon_id: usize = vcsv::from_field(&record, 2)?;
-        let battle_only = vcsv::from_field(&record, 5)?;
-        self.0[pokemon_id].push(Form {
+        let battle_only: u8 = vcsv::from_field(&record, 5)?;
+        self.0[pokemon_id - 1].push(Form {
             id,
             name: name.into(),
-            battle_only,
+            battle_only: battle_only != 0,
         });
         Ok(())
     }
@@ -176,7 +186,7 @@ impl vcsv::FromCsvIncremental for PokemonMoveTable {
         let learn_method = vcsv::from_field(&record, 3)?;
         let level = vcsv::from_field(&record, 4)?;
         let pokemon_move = PokemonMove { move_id, learn_method, level };
-        self.0[pokemon_id].entry(version_group)
+        self.0[pokemon_id - 1].entry(version_group)
             .or_insert(Vec::new()).push(pokemon_move);
         Ok(())
     }
@@ -206,11 +216,11 @@ impl std::ops::IndexMut<Stat> for BaseStats {
     }
 }
 
-struct StatsTable([BaseStats; POKEMON_COUNT]);
+struct StatTable([BaseStats; POKEMON_COUNT]);
 
-impl vcsv::FromCsvIncremental for StatsTable {
+impl vcsv::FromCsvIncremental for StatTable {
     fn from_empty_csv() -> Self {
-        StatsTable([Default::default(); POKEMON_COUNT])
+        StatTable([Default::default(); POKEMON_COUNT])
     }
 
     fn load_csv_record(
@@ -219,7 +229,25 @@ impl vcsv::FromCsvIncremental for StatsTable {
         let id: usize = vcsv::from_field(&record, 0)?;
         let stat = vcsv::from_field(&record, 1)?;
         let base = vcsv::from_field(&record, 2)?;
-        self.0[id][stat] = base;
+        self.0[id - 1][stat] = base;
+        Ok(())
+    }
+}
+
+struct TypeTable([[Option<Type>; 2]; POKEMON_COUNT]);
+
+impl vcsv::FromCsvIncremental for TypeTable {
+    fn from_empty_csv() -> Self {
+        TypeTable([[None; 2]; POKEMON_COUNT])
+    }
+
+    fn load_csv_record(
+        &mut self, record: csv::StringRecord
+    ) -> vcsv::Result<()> {
+        let pokemon_id: usize = vcsv::from_field(&record, 0)?;
+        let typ = vcsv::from_field(&record, 1)?;
+        let slot: usize = vcsv::from_field(&record, 2)?;
+        self.0[pokemon_id - 1][slot - 1] = Some(typ);
         Ok(())
     }
 }
@@ -232,6 +260,7 @@ pub struct Pokemon {
     pub forms: Vec<Form>,
     pub moves: HashMap<VersionGroup, Vec<PokemonMove>>,
     pub stats: BaseStats,
+    pub types: OneOrTwo<Type>,
 }
 
 struct PokemonTable(Vec<Vec<Pokemon>>);
@@ -246,13 +275,14 @@ impl vcsv::FromCsvIncremental for PokemonTable {
     ) -> vcsv::Result<()> {
         let pokemon_id: u16 = vcsv::from_field(&record, 0)?;
         let species_id: usize = vcsv::from_field(&record, 1)?;
-        self.0[species_id].push(Pokemon {
+        self.0[species_id - 1].push(Pokemon {
             id: pokemon_id,
             abilities: OneOrTwo::One(Ability::Stench),
             hidden_ability: None,
             forms: Vec::new(),
             moves: HashMap::new(),
             stats: Default::default(),
+            types: OneOrTwo::One(Type::Normal),
         });
         Ok(())
     }
@@ -265,26 +295,25 @@ impl PokemonTable {
         let form_table = FormTable::from_csv_data(vdata::FORMS).unwrap();
         let move_table
             = PokemonMoveTable::from_csv_data(vdata::POKEMON_MOVES).unwrap();
-        let stats_table = StatsTable::from_csv_data(vdata::STATS).unwrap();
+        let stat_table = StatTable::from_csv_data(vdata::STATS).unwrap();
+        let type_table = TypeTable::from_csv_data(vdata::TYPES).unwrap();
         let mut pokemon_table
             = PokemonTable::from_csv_data(vdata::POKEMON).unwrap();
         pokemon_table.set_abilities(&ability_table);
         pokemon_table.set_forms(&form_table);
         pokemon_table.set_moves(&move_table);
-        pokemon_table.set_stats(&stats_table);
+        pokemon_table.set_types(&type_table);
+        pokemon_table.set_stats(&stat_table);
         pokemon_table
     }
 
     fn set_abilities(&mut self, ability_table: &AbilityTable) {
         for mut species in self.0.iter_mut() {
             for mut pokemon in species {
-                let id = pokemon.id as usize;
-                let first = ability_table.0[id][0].unwrap();
-                pokemon.abilities = match ability_table.0[id][1] {
-                    Some(second) => OneOrTwo::Two(first, second),
-                    None => OneOrTwo::One(first),
-                };
-                pokemon.hidden_ability = ability_table.0[id][2];
+                let i = (pokemon.id - 1) as usize;
+                let options = [ability_table.0[i][0], ability_table.0[i][0]];
+                pokemon.abilities = OneOrTwo::from_options(options).unwrap();
+                pokemon.hidden_ability = ability_table.0[i][2];
             }
         }
     }
@@ -292,8 +321,8 @@ impl PokemonTable {
     fn set_forms(&mut self, form_table: &FormTable) {
         for mut species in self.0.iter_mut() {
             for mut pokemon in species {
-                let id = pokemon.id as usize;
-                pokemon.forms = form_table.0[id].clone();
+                let i = (pokemon.id - 1) as usize;
+                pokemon.forms = form_table.0[i].clone();
             }
         }
     }
@@ -301,17 +330,27 @@ impl PokemonTable {
     fn set_moves(&mut self, move_table: &PokemonMoveTable) {
         for mut species in self.0.iter_mut() {
             for mut pokemon in species {
-                let id = pokemon.id as usize;
-                pokemon.moves = move_table.0[id].clone();
+                let i = (pokemon.id - 1) as usize;
+                pokemon.moves = move_table.0[i].clone();
             }
         }
     }
 
-    fn set_stats(&mut self, stats_table: &StatsTable) {
+    fn set_types(&mut self, type_table: &TypeTable) {
         for mut species in self.0.iter_mut() {
             for mut pokemon in species {
-                let id = pokemon.id as usize;
-                pokemon.stats = stats_table.0[id];
+                let i = (pokemon.id - 1) as usize;
+                let options = type_table.0[i];
+                pokemon.types = OneOrTwo::from_options(options).unwrap();
+            }
+        }
+    }
+
+    fn set_stats(&mut self, stat_table: &StatTable) {
+        for mut species in self.0.iter_mut() {
+            for mut pokemon in species {
+                let i = (pokemon.id - 1) as usize;
+                pokemon.stats = stat_table.0[i];
             }
         }
     }
@@ -329,11 +368,12 @@ impl vcsv::FromCsvIncremental for EggGroupTable {
     ) -> vcsv::Result<()> {
         let id: usize = vcsv::from_field(&record, 0)?;
         let egg_group = vcsv::from_field(&record, 1)?;
-        self.0[id].push(egg_group);
+        self.0[id - 1].push(egg_group);
         Ok(())
     }
 }
 
+#[derive(Copy, Clone, Debug)]
 pub struct EvolvesFrom {
     pub from_id: u16,
     pub trigger: EvolutionTrigger,
@@ -371,15 +411,90 @@ impl vcsv::FromCsvIncremental for EvolutionTable {
     }
 }
 
-struct TypeTable(Vec<Vec<Type>>);
-
+#[derive(Clone, Debug)]
 pub struct Species {
     pub name: String,
     pub generation: Generation,
     pub pokemon: Vec<Pokemon>,
     pub egg_groups: OneOrTwo<EggGroup>,
     pub evolves_from: Option<EvolvesFrom>,
-    pub types: OneOrTwo<Type>,
 }
 
 pub struct SpeciesTable(Vec<Species>);
+
+impl vcsv::FromCsvIncremental for SpeciesTable {
+    fn from_empty_csv() -> Self {
+        let default = Species {
+            name: String::new(),
+            generation: Generation::I,
+            pokemon: Vec::new(),
+            egg_groups: OneOrTwo::One(EggGroup::NoEggs),
+            evolves_from: None,
+        };
+        SpeciesTable(repeat(default).take(POKEMON_COUNT).collect::<Vec<_>>())
+    }
+
+    fn load_csv_record(
+        &mut self, record: csv::StringRecord
+    ) -> vcsv::Result<()> {
+        let id: usize = vcsv::from_field(&record, 0)?;
+        let identifier: VeekunString = vcsv::from_field(&record, 1)?;
+        let generation = vcsv::from_field(&record, 2)?;
+        let i = id - 1;
+        self.0[i].name = to_pascal_case(identifier.as_str());
+        self.0[i].generation = generation;
+        if let VeekunOption(Some(from_id)) = vcsv::from_field(&record, 3)? {
+            self.0[i].evolves_from = Some(EvolvesFrom {
+                from_id,
+                trigger: EvolutionTrigger::LevelUp,
+                level: 0,
+                gender: Gender::Genderless,
+                move_id: 0,
+                relative_physical_stats: None,
+            });
+        }
+        Ok(())
+    }
+}
+
+impl SpeciesTable {
+    pub fn new() -> Self {
+        let pokemon_table = PokemonTable::new();
+        let egg_group_table
+            = EggGroupTable::from_csv_data(vdata::EGG_GROUPS).unwrap();
+        let evolution_table
+            = EvolutionTable::from_csv_data(vdata::EVOLUTION).unwrap();
+        let mut species_table
+            = SpeciesTable::from_csv_data(vdata::SPECIES).unwrap();
+        species_table.set_pokemon(&pokemon_table);
+        species_table.set_egg_groups(&egg_group_table);
+        species_table.set_evolutions(&evolution_table);
+        species_table
+    }
+
+    fn set_pokemon(&mut self, pokemon_table: &PokemonTable) {
+        for i in 0..SPECIES_COUNT {
+            self.0[i].pokemon = pokemon_table.0[i].clone();
+        }
+    }
+
+    fn set_egg_groups(&mut self, egg_group_table: &EggGroupTable) {
+        for i in 0..SPECIES_COUNT {
+            let options = [
+                egg_group_table.0[i].get(0).map(|g| *g),
+                egg_group_table.0[i].get(1).map(|g| *g),
+            ];
+            self.0[i].egg_groups = OneOrTwo::from_options(options).unwrap();
+        }
+    }
+
+    fn set_evolutions(&mut self, evolution_table: &EvolutionTable) {
+        for i in 0..SPECIES_COUNT {
+            self.0[i].evolves_from
+                = self.0[i].evolves_from.map(|e| EvolvesFrom {
+                    from_id: e.from_id,
+                    .. evolution_table.0[&((i + 1) as u16)]
+                });
+        }
+    }
+}

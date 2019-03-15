@@ -139,6 +139,12 @@ impl<T> FromVeekunField for T
 /// Wrapper for `String` that implements `FromVeekunField`.
 pub struct VeekunString(String);
 
+impl VeekunString {
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+}
+
 impl Into<String> for VeekunString {
     fn into(self) -> String {
         self.0
@@ -163,7 +169,10 @@ impl FromVeekunField for VeekunString {
 /// literally contain `Some()` or `None`. This type, on the other hand, yields
 /// `None` for an empty field (or all whitespace), and `Some` otherwise
 /// (assuming no error occurs in conversion).
-pub struct VeekunOption<T>(Option<T>);
+///
+/// The `Option<T>` is public to allow for pattern matching, but if you want to
+/// access it, the recommended way is `into()`.
+pub struct VeekunOption<T>(pub Option<T>);
 
 impl<T> Into<Option<T>> for VeekunOption<T> {
     fn into(self) -> Option<T> {

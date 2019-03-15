@@ -9,6 +9,7 @@ use pokemon;
 use versions;
 
 use Enum;
+use Pokedex;
 use to_pascal_case;
 
 #[test]
@@ -56,4 +57,9 @@ fn assert_sanity() {
 #[test]
 fn check_pascal_case() {
     assert_eq!(to_pascal_case("master-ball"), "MasterBall");
+}
+
+#[test]
+fn load_pokedex() {
+    Pokedex::new();
 }

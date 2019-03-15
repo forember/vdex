@@ -32,3 +32,15 @@ pub struct Pokedex {
     pub palace: PalaceTable,
     pub species: pokemon::SpeciesTable,
 }
+
+impl Pokedex {
+    pub fn new() -> Self {
+        Pokedex {
+            efficacy: EfficacyTable::new(),
+            items: items::ItemTable::new(),
+            moves: moves::MoveTable::new(),
+            palace: PalaceTable::new(),
+            species: pokemon::SpeciesTable::new(),
+        }
+    }
+}

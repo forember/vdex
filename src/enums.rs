@@ -63,14 +63,12 @@
 //! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "c_int")]
-//! #[derive(Hash)]
 //! pub enum InetDomain {
 //!     Inet = 2,
 //!     // …
 //! }
 //!
 //! #[EnumRepr(type = "c_int")]
-//! #[derive(Hash)]
 //! pub enum SocketType {
 //!     Stream = 1,
 //!     // …
