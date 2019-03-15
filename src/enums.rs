@@ -29,13 +29,13 @@
 //!
 //! # Examples
 //! ```
-//! extern crate pbirch;
+//! extern crate vdex;
 //! extern crate enum_repr;
 //! extern crate libc;
 //!
 //! use libc::*;
 //! 
-//! use pbirch::Enum;
+//! use vdex::Enum;
 //! use enum_repr::EnumRepr;
 //! 
 //! #[EnumRepr(type = "c_int")]
@@ -53,13 +53,13 @@
 //! ```
 //!
 //! ```
-//! # extern crate pbirch;
+//! # extern crate vdex;
 //! # extern crate enum_repr;
 //! # extern crate libc;
 //! #
 //! # use libc::*;
 //! #
-//! # use pbirch::Enum;
+//! # use vdex::Enum;
 //! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "c_int")]
@@ -84,13 +84,13 @@
 //! ```
 //!
 //! ```no_run
-//! # extern crate pbirch;
+//! # extern crate vdex;
 //! # extern crate enum_repr;
 //! # extern crate libc;
 //! #
 //! # use libc::*;
 //! #
-//! # use pbirch::Enum;
+//! # use vdex::Enum;
 //! # use enum_repr::EnumRepr;
 //! #
 //! // compatible with documentation and other attributes
@@ -108,13 +108,13 @@
 //!
 //! Discriminants can be implicit if `implicit = true` (default):
 //! ```
-//! # extern crate pbirch;
+//! # extern crate vdex;
 //! # extern crate enum_repr;
 //! # extern crate libc;
 //! #
 //! # use libc::*;
 //! #
-//! # use pbirch::Enum;
+//! # use vdex::Enum;
 //! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "c_int")]
@@ -134,13 +134,13 @@
 //!
 //! Using implicit discriminants with the flag false is an error:
 //! ```compile_fail
-//! # extern crate pbirch;
+//! # extern crate vdex;
 //! # extern crate enum_repr;
 //! # extern crate libc;
 //! #
 //! # use libc::*;
 //! #
-//! # use pbirch::Enum;
+//! # use vdex::Enum;
 //! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "c_int", implicit = false)]
@@ -155,10 +155,10 @@
 //! Take extra care to avoid collisions when using implicit discriminants:
 //! ```compile_fail
 //! # #![deny(overflowing_literals)]
-//! # extern crate pbirch;
+//! # extern crate vdex;
 //! # extern crate enum_repr;
 //! #
-//! # use pbirch::Enum;
+//! # use vdex::Enum;
 //! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "u8")]
@@ -175,10 +175,10 @@
 //! Out of bound discriminants fail to compile:
 //! ```compile_fail
 //! # #![deny(overflowing_literals)]
-//! # extern crate pbirch;
+//! # extern crate vdex;
 //! # extern crate enum_repr;
 //! #
-//! # use pbirch::Enum;
+//! # use vdex::Enum;
 //! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "u8")]
@@ -192,10 +192,10 @@
 //! Even if they are implicit:
 //! ```compile_fail
 //! # #![deny(overflowing_literals)]
-//! # extern crate pbirch;
+//! # extern crate vdex;
 //! # extern crate enum_repr;
 //! #
-//! # use pbirch::Enum;
+//! # use vdex::Enum;
 //! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "u8")]
@@ -210,10 +210,10 @@
 //! Discriminants of a wrong type fail to compile as well:
 //! ```compile_fail
 //! # #![deny(overflowing_literals)]
-//! # extern crate pbirch;
+//! # extern crate vdex;
 //! # extern crate enum_repr;
 //! #
-//! # use pbirch::Enum;
+//! # use vdex::Enum;
 //! # use enum_repr::EnumRepr;
 //! #
 //! const C: u16 = 256;
@@ -228,12 +228,12 @@
 //!
 //! Using the actual enum discriminant representation:
 //! ```
-//! # extern crate pbirch;
+//! # extern crate vdex;
 //! # extern crate enum_repr;
 //! #
 //! # use std::mem::size_of;
 //! #
-//! # use pbirch::Enum;
+//! # use vdex::Enum;
 //! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "u8")]
@@ -248,11 +248,11 @@
 //!
 //! Prevent automatic derive with `derive = false`:
 //! ```
-//! # extern crate pbirch;
+//! # extern crate vdex;
 //! # extern crate enum_repr;
 //! #
 //! # use std::fmt;
-//! # use pbirch::Enum;
+//! # use vdex::Enum;
 //! # use enum_repr::EnumRepr;
 //! #
 //! #[EnumRepr(type = "u8", derive = false)]
@@ -275,7 +275,7 @@
 
 pub use enum_repr::EnumRepr;
 
-/// All of the pbirch C-style enums implement this trait, which allows for easy
+/// All of the vdex C-style enums implement this trait, which allows for easy
 /// conversion between the underlying integer representation and the enum type.
 pub trait Enum<T: Copy> where Self: 'static + Sized + Copy {
     /// The total number of enum values.
