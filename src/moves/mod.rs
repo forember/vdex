@@ -206,7 +206,7 @@ impl MoveTable {
 
 impl vcsv::FromCsvIncremental for MoveTable {
     fn from_empty_csv() -> Self {
-        MoveTable(vec![])
+        MoveTable(Vec::new())
     }
 
     fn load_csv_record(

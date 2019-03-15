@@ -88,6 +88,22 @@ impl FromVeekun for EggGroup {
     }
 }
 
+impl FromVeekun for EvolutionTrigger {
+    type Intermediate = u8;
+
+    fn from_veekun(id: u8) -> Option<Self> {
+        Self::from_repr(id)
+    }
+}
+
+impl FromVeekun for Gender {
+    type Intermediate = u8;
+
+    fn from_veekun(id: u8) -> Option<Self> {
+        Self::from_repr(id)
+    }
+}
+
 struct AbilityTable([[Option<Ability>; 3]; POKEMON_COUNT]);
 
 impl vcsv::FromCsvIncremental for AbilityTable {
@@ -117,7 +133,7 @@ struct FormTable(Vec<Vec<Form>>);
 
 impl vcsv::FromCsvIncremental for FormTable {
     fn from_empty_csv() -> Self {
-        FormTable(repeat(vec![]).take(POKEMON_COUNT).collect::<Vec<_>>())
+        FormTable(repeat(Vec::new()).take(POKEMON_COUNT).collect::<Vec<_>>())
     }
 
     fn load_csv_record(
@@ -132,6 +148,36 @@ impl vcsv::FromCsvIncremental for FormTable {
             name: name.into(),
             battle_only,
         });
+        Ok(())
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct PokemonMove {
+    pub move_id: u16,
+    pub learn_method: LearnMethod,
+    pub level: u8,
+}
+
+struct PokemonMoveTable(Vec<HashMap<VersionGroup, Vec<PokemonMove>>>);
+
+impl vcsv::FromCsvIncremental for PokemonMoveTable {
+    fn from_empty_csv() -> Self {
+        PokemonMoveTable(repeat(HashMap::new())
+                .take(POKEMON_COUNT).collect::<Vec<_>>())
+    }
+
+    fn load_csv_record(
+        &mut self, record: csv::StringRecord
+    ) -> vcsv::Result<()> {
+        let pokemon_id: usize = vcsv::from_field(&record, 0)?;
+        let version_group = vcsv::from_field(&record, 1)?;
+        let move_id = vcsv::from_field(&record, 2)?;
+        let learn_method = vcsv::from_field(&record, 3)?;
+        let level = vcsv::from_field(&record, 4)?;
+        let pokemon_move = PokemonMove { move_id, learn_method, level };
+        self.0[pokemon_id].entry(version_group)
+            .or_insert(Vec::new()).push(pokemon_move);
         Ok(())
     }
 }
@@ -184,6 +230,7 @@ pub struct Pokemon {
     pub abilities: OneOrTwo<Ability>,
     pub hidden_ability: Option<Ability>,
     pub forms: Vec<Form>,
+    pub moves: HashMap<VersionGroup, Vec<PokemonMove>>,
     pub stats: BaseStats,
 }
 
@@ -191,7 +238,7 @@ struct PokemonTable(Vec<Vec<Pokemon>>);
 
 impl vcsv::FromCsvIncremental for PokemonTable {
     fn from_empty_csv() -> Self {
-        PokemonTable(repeat(vec![]).take(SPECIES_COUNT).collect::<Vec<_>>())
+        PokemonTable(repeat(Vec::new()).take(SPECIES_COUNT).collect::<Vec<_>>())
     }
 
     fn load_csv_record(
@@ -203,7 +250,8 @@ impl vcsv::FromCsvIncremental for PokemonTable {
             id: pokemon_id,
             abilities: OneOrTwo::One(Ability::Stench),
             hidden_ability: None,
-            forms: vec![],
+            forms: Vec::new(),
+            moves: HashMap::new(),
             stats: Default::default(),
         });
         Ok(())
@@ -215,11 +263,14 @@ impl PokemonTable {
         let ability_table
             = AbilityTable::from_csv_data(vdata::ABILITIES).unwrap();
         let form_table = FormTable::from_csv_data(vdata::FORMS).unwrap();
+        let move_table
+            = PokemonMoveTable::from_csv_data(vdata::POKEMON_MOVES).unwrap();
         let stats_table = StatsTable::from_csv_data(vdata::STATS).unwrap();
         let mut pokemon_table
             = PokemonTable::from_csv_data(vdata::POKEMON).unwrap();
         pokemon_table.set_abilities(&ability_table);
         pokemon_table.set_forms(&form_table);
+        pokemon_table.set_moves(&move_table);
         pokemon_table.set_stats(&stats_table);
         pokemon_table
     }
@@ -247,6 +298,15 @@ impl PokemonTable {
         }
     }
 
+    fn set_moves(&mut self, move_table: &PokemonMoveTable) {
+        for mut species in self.0.iter_mut() {
+            for mut pokemon in species {
+                let id = pokemon.id as usize;
+                pokemon.moves = move_table.0[id].clone();
+            }
+        }
+    }
+
     fn set_stats(&mut self, stats_table: &StatsTable) {
         for mut species in self.0.iter_mut() {
             for mut pokemon in species {
@@ -261,7 +321,7 @@ struct EggGroupTable(Vec<Vec<EggGroup>>);
 
 impl vcsv::FromCsvIncremental for EggGroupTable {
     fn from_empty_csv() -> Self {
-        EggGroupTable(repeat(vec![]).take(SPECIES_COUNT).collect::<Vec<_>>())
+        EggGroupTable(repeat(Vec::new()).take(SPECIES_COUNT).collect::<Vec<_>>())
     }
 
     fn load_csv_record(
@@ -277,21 +337,39 @@ impl vcsv::FromCsvIncremental for EggGroupTable {
 pub struct EvolvesFrom {
     pub from_id: u16,
     pub trigger: EvolutionTrigger,
-    pub level: Option<u8>,
+    pub level: u8,
     pub gender: Gender,
     pub move_id: u16,
-    pub relative_physical_stats: i8,
+    pub relative_physical_stats: Option<i8>,
 }
 
 struct EvolutionTable(HashMap<u16, EvolvesFrom>);
 
-pub struct PokemonMove {
-    pub move_id: u16,
-    pub learn_method: LearnMethod,
-    pub level: u8,
-}
+impl vcsv::FromCsvIncremental for EvolutionTable {
+    fn from_empty_csv() -> Self {
+        EvolutionTable(HashMap::new())
+    }
 
-struct PokemonMoveTable(Vec<HashMap<VersionGroup, Vec<PokemonMove>>>);
+    fn load_csv_record(
+        &mut self, record: csv::StringRecord
+    ) -> vcsv::Result<()> {
+        let species_id: u16 = vcsv::from_field(&record, 1)?;
+        let trigger = vcsv::from_field(&record, 2)?;
+        let level = vcsv::from_option_field(&record, 4, 0)?;
+        let gender = vcsv::from_option_field(&record, 5, Gender::Genderless)?;
+        let move_id = vcsv::from_option_field(&record, 9, 0)?;
+        let rps: VeekunOption<_> = vcsv::from_field(&record, 12)?;
+        self.0.insert(species_id, EvolvesFrom {
+            from_id: 0,
+            trigger,
+            level,
+            gender,
+            move_id,
+            relative_physical_stats: rps.into(),
+        });
+        Ok(())
+    }
+}
 
 struct TypeTable(Vec<Vec<Type>>);
 
@@ -301,7 +379,6 @@ pub struct Species {
     pub pokemon: Vec<Pokemon>,
     pub egg_groups: OneOrTwo<EggGroup>,
     pub evolves_from: Option<EvolvesFrom>,
-    pub moves: HashMap<VersionGroup, Vec<PokemonMove>>,
     pub types: OneOrTwo<Type>,
 }
 
