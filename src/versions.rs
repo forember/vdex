@@ -5,7 +5,7 @@ use crate::FromVeekun;
 
 #[EnumRepr(type = "u8")]
 pub enum Generation {
-    I = 1,
+    I = 0,
     II,
     III,
     IV,
@@ -14,7 +14,7 @@ pub enum Generation {
 
 #[EnumRepr(type = "u8")]
 pub enum Version {
-    Red = 1,
+    Red = 0,
     Blue,
     Yellow,
     Gold,
@@ -40,7 +40,7 @@ pub enum Version {
 
 #[EnumRepr(type = "u8")]
 pub enum VersionGroup {
-    RedBlue = 1,
+    RedBlue = 0,
     Yellow,
     GoldSilver,
     Crystal,
@@ -62,24 +62,24 @@ use crate::versions::VersionGroup as VG;
 impl FromVeekun for Generation {
     type Intermediate = u8;
     
-    fn from_veekun(id: u8) -> Option<Self> {
-        Self::from_repr(id)
+    fn from_veekun(value: u8) -> Option<Self> {
+        Self::from_repr(value - 1)
     }
 }
 
 impl FromVeekun for Version {
     type Intermediate = u8;
     
-    fn from_veekun(id: u8) -> Option<Self> {
-        Self::from_repr(id)
+    fn from_veekun(value: u8) -> Option<Self> {
+        Self::from_repr(value - 1)
     }
 }
 
 impl FromVeekun for VersionGroup {
     type Intermediate = u8;
     
-    fn from_veekun(id: u8) -> Option<Self> {
-        Self::from_repr(id)
+    fn from_veekun(value: u8) -> Option<Self> {
+        Self::from_repr(value - 1)
     }
 }
 

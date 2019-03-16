@@ -112,8 +112,8 @@ impl Nature {
 impl FromVeekun for Nature {
     type Intermediate = u8;
 
-    fn from_veekun(id: u8) -> Option<Self> {
-        match id {
+    fn from_veekun(value: u8) -> Option<Self> {
+        match value {
             1 => Some(Nature::Hardy),
             2 => Some(Nature::Bold),
             3 => Some(Nature::Modest),
@@ -147,8 +147,8 @@ impl FromVeekun for Nature {
 impl FromVeekun for Stat {
     type Intermediate = u8;
 
-    fn from_veekun(id: u8) -> Option<Self> {
-        match id {
+    fn from_veekun(value: u8) -> Option<Self> {
+        match value {
             1 => Some(Stat::HP),
             2 => Some(Stat::Attack),
             3 => Some(Stat::Defense),

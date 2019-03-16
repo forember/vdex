@@ -1,6 +1,9 @@
 use crate::FromVeekun;
 use std::collections::HashMap;
+use super::ItemId;
 use crate::vcsv;
+use crate::vcsv::FromCsv;
+use crate::vdata;
 
 bitflags! {
     /// Miscellaneous bitflags for items.
@@ -24,6 +27,10 @@ bitflags! {
     }
 }
 
+impl Default for Flags {
+    fn default() -> Self { Flags::empty() }
+}
+
 impl FromVeekun for Flags {
     type Intermediate = u8;
 
@@ -35,12 +42,17 @@ impl FromVeekun for Flags {
     }
 }
 
-pub struct FlagTable(pub HashMap<u16, Flags>);
+#[derive(Default)]
+pub struct FlagTable(pub HashMap<ItemId, Flags>);
+
+impl FlagTable {
+    pub fn new() -> Self {
+        FlagTable::from_csv_data(vdata::ITEM_FLAGS).unwrap()
+    }
+}
 
 impl vcsv::FromCsvIncremental for FlagTable {
-    fn from_empty_csv() -> Self {
-        FlagTable(HashMap::new())
-    }
+    fn from_empty_csv() -> Self { Default::default() }
 
     fn load_csv_record(
         &mut self, record: csv::StringRecord
@@ -50,5 +62,13 @@ impl vcsv::FromCsvIncremental for FlagTable {
         let new_flags = self.0.get(&id).map_or(flag, |v| flag | *v);
         self.0.insert(id, new_flags);
         Ok(())
+    }
+}
+
+impl std::ops::Index<ItemId> for FlagTable {
+    type Output = Flags;
+
+    fn index(&self, index: ItemId) -> &Flags {
+        self.0.index(&index)
     }
 }

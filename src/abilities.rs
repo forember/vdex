@@ -12,7 +12,8 @@ use crate::FromVeekun;
 /// > form change. Not every Ability is beneficial; some will hinder the user.
 #[EnumRepr(type = "u8")]
 pub enum Ability {
-    Stench = 1,
+    Cacophony = 0,
+    Stench,
     Drizzle,
     SpeedBoost,
     BattleArmor,
@@ -176,6 +177,10 @@ pub enum Ability {
     VictoryStar,
     Turboblaze,
     Teravolt,
+}
+
+impl Default for Ability {
+    fn default() -> Self { Ability::Cacophony }
 }
 
 impl FromVeekun for Ability {

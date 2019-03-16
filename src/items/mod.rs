@@ -1,8 +1,11 @@
 //! Items and related data.
 
+pub(self) mod bag;
 pub(self) mod berries;
 pub(self) mod flags;
 
+pub use self::bag::Category;
+pub use self::bag::Pocket;
 pub use self::berries::Berry;
 pub use self::berries::BERRY_COUNT;
 pub use self::berries::Flavor;
@@ -17,99 +20,6 @@ use crate::vcsv::FromCsv;
 use crate::vdata;
 use crate::VeekunOption;
 
-/// Broad item category; not used for anything other than organization.
-#[EnumRepr(type = "u8")]
-pub enum Category {
-    /// X *Stat*, Dire Hit, and Guard Spec.
-    StatBoosts = 1,
-    /// Berries that lower EVs and raise happiness; unused in pbirch.
-    EffortDrop,
-    /// Berries that act as medicine.
-    Medicine,
-    /// Miscellaneous berries.
-    Other,
-    /// Berries consumed at quarter HP, generally to boost a stat.
-    InAPinch,
-    /// Berries that heal 1/8 HP if their flavor is not disliked.
-    PickyHealing,
-    /// Berries that halve damage of a typed attack, usually only when super
-    /// effective.
-    TypeProtection,
-    /// Berries that are only useful for baking; unused in pbirch.
-    BakingOnly,
-    /// Items that have no effect, but can be traded for items or moves; unused
-    /// in pbirch.
-    Collectibles,
-    /// Items involved in evolution.
-    Evolution,
-    /// Non-held items that affect wild battles, and the Escape Rope; unused in
-    /// pbirch.
-    Spelunking,
-    /// Miscellaneous held items.
-    HeldItems,
-    /// Choice Band, Scarf, and Specs.
-    Choice,
-    /// Items that add EVs, but halve Speed, and the Macho Brace; unused in
-    /// pbirch.
-    EffortTraining,
-    /// Held items that have a negative effect on the holder.
-    BadHeldItems,
-    /// Various held items useful in training; unused in pbirch.
-    Training,
-    /// Arceus type plates.
-    Plates,
-    /// Held items that only affect a specific species.
-    SpeciesSpecific,
-    /// Held items that increase the damage of typed moves.
-    TypeEnhancement,
-    /// Key items from Nintendo events; unused in pbirch.
-    EventItems,
-    /// Key items to facilitate various gameplay elements; unused in pbirch.
-    Gameplay,
-    /// Key items to facilitate plot advancement; unused in pbirch.
-    PlotAdvancement,
-    /// Key items that have code but are unused; unused in pbirch.
-    Unused,
-    /// Valuables that can be sold or traded; unused in pbirch.
-    Loot,
-    /// Held items which may contain a message for a trade; unused in pbirch.
-    Mail,
-    /// Medicines which increase EVs; unused in pbirch.
-    Vitamins,
-    /// Medicines which restore HP.
-    Healing,
-    /// Medicines which restore PP.
-    PPRecovery,
-    /// Medicines which revive Pokémon from fainting.
-    Revival,
-    /// Medicines which cure status ailments.
-    StatusCures,
-    /// Items to be used on soil to affect berry growth; unused in pbirch.
-    Mulch = 32,
-    /// Poké Balls which have a special effect; unused in pbirch.
-    SpecialBalls,
-    /// Poké Balls without any special effect; unused in pbirch.
-    StandardBalls,
-    /// Fossils, Honey, and the Odd Keystone.
-    DexCompletion,
-    /// Held items which raise the holder's contest condition; unused in pbirch.
-    Scarves,
-    /// TMs and HMs.
-    Machines,
-    /// Blue, Red, and Yellow Flutes.
-    Flutes,
-    /// Poké Balls produced from apricorns; unused in pbirch.
-    ApricornBalls,
-    /// Apricorns; unused in pbirch.
-    ApricornBox,
-    /// Key items which record Pokéathlon statistics; unused in pbirch.
-    DataCards,
-    /// Held items which are consumed, increasing the power of a typed move.
-    Jewels,
-    /// Wonder Launcher items; unused in pbirch.
-    MiracleShooter,
-}
-
 /// Extra effect when thrown using Fling.
 #[EnumRepr(type = "u8")]
 pub enum FlingEffect {
@@ -123,51 +33,8 @@ pub enum FlingEffect {
     Flinch,
 }
 
-/// Bag pocket in which items are stored.
-#[EnumRepr(type = "u8")]
-pub enum Pocket {
-    Misc = 1,
-    Medicine,
-    Pokeballs,
-    Machines,
-    Berries,
-    Mail,
-    Battle,
-    Key,
-}
-
-impl Category {
-    /// True if the items in this category have no use in the pbirch simulation.
-    pub fn unused(self) -> bool {
-        match self.repr() {
-            2 | 8 | 9 | 11 | 14 | 16 | 20 ... 26 | 32 ... 34 | 36 | 39 ... 41
-                | 43  => true,
-            _ => false,
-        }
-    }
-
-    /// Get the bag pocket in which items of this category are stored.
-    pub fn pocket(self) -> Pocket {
-        match self.repr() {
-            9 ... 19 | 24 | 32 | 35 | 36 | 42 => Pocket::Misc,
-            26 ... 30 => Pocket::Medicine,
-            33 | 34 | 39 => Pocket::Pokeballs,
-            37 => Pocket::Machines,
-            2 ... 8 => Pocket::Berries,
-            25 => Pocket::Mail,
-            1 | 38 | 43 => Pocket::Battle,
-            20 ... 23 | 40 | 41 => Pocket::Key,
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl FromVeekun for Category {
-    type Intermediate = u8;
-
-    fn from_veekun(value: u8) -> Option<Self> {
-        Category::from_repr(value)
-    }
+impl Default for FlingEffect {
+    fn default() -> Self { FlingEffect::None }
 }
 
 impl FromVeekun for FlingEffect {
@@ -178,6 +45,25 @@ impl FromVeekun for FlingEffect {
     }
 }
 
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+pub struct ItemId(pub u16);
+
+impl Default for ItemId {
+    fn default() -> Self { ItemId(0) }
+}
+
+impl FromVeekun for ItemId {
+    type Intermediate = u16;
+
+    fn from_veekun(value: u16) -> Option<Self> {
+        if value == 0 {
+            None
+        } else {
+            Some(ItemId(value))
+        }
+    }
+}
+
 /// A bag item.
 ///
 /// > [*[From Bulbapedia:]*](https://bulbapedia.bulbagarden.net/wiki/Item) An
@@ -185,7 +71,7 @@ impl FromVeekun for FlingEffect {
 /// > player can pick up, keep in their Bag, and use in some manner. They have
 /// > various uses, including healing, powering up, helping one to catch
 /// > Pokémon, or to access a new area.
-#[derive(Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Item {
     /// The pbirch name for the item.
     pub name: String,
@@ -208,18 +94,24 @@ pub struct Item {
 /// Wrapper of a `HashMap` mapping IDs to items.
 ///
 /// Use `table.0` to access `HashMap` members.
-pub struct ItemTable(pub HashMap<u16, Item>);
+#[derive(Default)]
+pub struct ItemTable(pub HashMap<ItemId, Item>);
 
 impl ItemTable {
     /// Create an item table from the included CSV data.
     pub fn new() -> Self {
-        let berries_table = berries::BerryTable::new();
-        let flags_table
-            = flags::FlagTable::from_csv_data(vdata::ITEM_FLAGS).unwrap();
         let mut items_table = ItemTable::from_csv_data(vdata::ITEMS).unwrap();
-        items_table.set_flags(&flags_table);
-        items_table.set_berries(&berries_table);
+        items_table.set_berries(&berries::BerryTable::new());
+        items_table.set_flags(&flags::FlagTable::new());
         items_table
+    }
+
+    fn set_berries(&mut self, berry_table: &berries::BerryTable) {
+        for berry in berry_table.0.iter() {
+            if let Some(item) = self.0.get_mut(&berry.item) {
+                item.berry = Some(*berry);
+            }
+        }
     }
 
     fn set_flags(&mut self, flag_table: &flags::FlagTable) {
@@ -227,22 +119,6 @@ impl ItemTable {
             item.flags = flag_table.0.get(id)
                 .map_or(flags::Flags::empty(), |v| *v);
         }
-    }
-
-    fn set_berries(&mut self, berry_table: &berries::BerryTable) {
-        for berry in berry_table.0.iter() {
-            if let Some(item) = self.0.get_mut(&berry.item_id) {
-                item.berry = Some(*berry);
-            }
-        }
-    }
-}
-
-impl std::ops::Index<u16> for ItemTable {
-    type Output = Item;
-
-    fn index<'a>(&'a self, index: u16) -> &'a Item {
-        self.0.index(&index)
     }
 }
 
@@ -267,5 +143,13 @@ impl vcsv::FromCsvIncremental for ItemTable {
             berry: None,
         });
         Ok(())
+    }
+}
+
+impl std::ops::Index<ItemId> for ItemTable {
+    type Output = Item;
+
+    fn index(&self, index: ItemId) -> &Item {
+        self.0.index(&index)
     }
 }

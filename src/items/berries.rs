@@ -1,12 +1,10 @@
 use crate::enums::*;
 use crate::FromVeekun;
+use super::ItemId;
 use crate::Type;
 use crate::vcsv;
 use crate::vcsv::FromCsv;
 use crate::vdata;
-
-/// The total number of berries in pbirch.
-pub const BERRY_COUNT: usize = 64;
 
 /// Aka condition, the "type" of moves in contests.
 ///
@@ -64,8 +62,8 @@ impl std::convert::From<Flavor> for ContestType {
 impl FromVeekun for ContestType {
     type Intermediate = u8;
 
-    fn from_veekun(id: u8) -> Option<Self> {
-        match id {
+    fn from_veekun(value: u8) -> Option<Self> {
+        match value {
             1 => Some(ContestType::Cool),
             2 => Some(ContestType::Beauty),
             3 => Some(ContestType::Cute),
@@ -85,8 +83,31 @@ impl std::convert::From<ContestType> for Flavor {
 impl FromVeekun for Flavor {
     type Intermediate = u8;
 
-    fn from_veekun(id: u8) -> Option<Self> {
-        ContestType::from_veekun(id).and_then(|t| Some(Flavor::from(t)))
+    fn from_veekun(value: u8) -> Option<Self> {
+        ContestType::from_veekun(value).and_then(|t| Some(Flavor::from(t)))
+    }
+}
+
+/// The total number of berries in pbirch.
+pub const BERRY_COUNT: usize = 64;
+
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+pub struct BerryId(pub u8);
+
+impl Default for BerryId {
+    fn default() -> Self { BerryId(std::u8::MAX) }
+}
+
+impl FromVeekun for BerryId {
+    type Intermediate = u8;
+
+    fn from_veekun(value: u8) -> Option<Self> {
+        let id = value - 1;
+        if id < (BERRY_COUNT as u8) {
+            Some(BerryId(id))
+        } else {
+            None
+        }
     }
 }
 
@@ -99,43 +120,29 @@ impl FromVeekun for Flavor {
 /// > II games, many Berries have since become critical held items in battle,
 /// > where their various effects include HP and status condition restoration,
 /// > stat enhancement, and even damage negation.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Berry {
-    pub item_id: u16,
+    pub item: ItemId,
     pub natural_gift_power: u8,
     pub natural_gift_type: Type,
     pub flavor: Option<Flavor>,
-}
-
-impl Default for Berry {
-    fn default() -> Self {
-        Berry {
-            item_id: 0,
-            natural_gift_power: 0,
-            natural_gift_type: Type::Normal,
-            flavor: None,
-        }
-    }
 }
 
 pub struct BerryTable(pub [Berry; BERRY_COUNT]);
 
 impl BerryTable {
     pub fn new() -> Self {
-        let flavors_table
-            = BerryFlavorTable::from_csv_data(vdata::BERRY_FLAVORS).unwrap();
-        let mut berries_table
-            = BerryTable::from_csv_data(vdata::BERRIES).unwrap();
-        berries_table.set_flavors(&flavors_table);
-        berries_table
+        let mut table = BerryTable::from_csv_data(vdata::BERRIES).unwrap();
+        table.set_flavors(&BerryFlavorTable::new());
+        table
     }
 
     fn set_flavors(&mut self, flavors: &BerryFlavorTable) {
-        for i in 0..BERRY_COUNT {
+        for id in 0..BERRY_COUNT {
             let mut max_flavor = None;
             let mut max_value = 0;
             for &flavor in Flavor::VALUES {
-                let value = flavors[flavor][i];
+                let value = flavors[flavor][id];
                 if value > max_value {
                     max_flavor = Some(flavor);
                     max_value = value;
@@ -143,41 +150,45 @@ impl BerryTable {
                     max_flavor = None;
                 }
             }
-            self[i].flavor = max_flavor;
+            self.0[id].flavor = max_flavor;
         }
     }
 }
 
-impl std::ops::Index<usize> for BerryTable {
-    type Output = Berry;
-
-    fn index<'a>(&'a self, index: usize) -> &'a Berry {
-        self.0.index(index)
-    }
-}
-
-impl std::ops::IndexMut<usize> for BerryTable {
-    fn index_mut<'a>(&'a mut self, index: usize) -> &'a mut Berry {
-        self.0.index_mut(index)
+impl Default for BerryTable {
+    fn default() -> Self {
+        BerryTable([Default::default(); BERRY_COUNT])
     }
 }
 
 impl vcsv::FromCsvIncremental for BerryTable {
-    fn from_empty_csv() -> Self {
-        BerryTable([Default::default(); BERRY_COUNT])
-    }
+    fn from_empty_csv() -> Self { Default::default() }
     
     fn load_csv_record(
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<()> {
-        let id: usize = vcsv::from_field(&record, 0)?;
-        self[id - 1] = Berry {
-            item_id: vcsv::from_field(&record, 1)?,
+        let id: BerryId = vcsv::from_field(&record, 0)?;
+        self[id] = Berry {
+            item: vcsv::from_field(&record, 1)?,
             natural_gift_power: vcsv::from_field(&record, 3)?,
             natural_gift_type: vcsv::from_field(&record, 4)?,
             flavor: None,
         };
         Ok(())
+    }
+}
+
+impl std::ops::Index<BerryId> for BerryTable {
+    type Output = Berry;
+
+    fn index(&self, index: BerryId) -> &Berry {
+        self.0.index(index.0 as usize)
+    }
+}
+
+impl std::ops::IndexMut<BerryId> for BerryTable {
+    fn index_mut(&mut self, index: BerryId) -> &mut Berry {
+        self.0.index_mut(index.0 as usize)
     }
 }
 
@@ -187,6 +198,39 @@ pub struct BerryFlavorTable {
     pub sweet: [u8; BERRY_COUNT],
     pub dry: [u8; BERRY_COUNT],
     pub bitter: [u8; BERRY_COUNT],
+}
+
+impl BerryFlavorTable {
+    pub fn new() -> Self {
+        BerryFlavorTable::from_csv_data(vdata::BERRY_FLAVORS).unwrap()
+    }
+}
+
+impl Default for BerryFlavorTable {
+    fn default() -> Self {
+        BerryFlavorTable {
+            spicy: [0; BERRY_COUNT],
+            sour: [0; BERRY_COUNT],
+            sweet: [0; BERRY_COUNT],
+            dry: [0; BERRY_COUNT],
+            bitter: [0; BERRY_COUNT],
+        }
+    }
+}
+
+impl vcsv::FromCsvIncremental for BerryFlavorTable {
+    fn from_empty_csv() -> Self { Default::default() }
+
+    fn load_csv_record(
+        &mut self, record: csv::StringRecord
+    ) -> vcsv::Result<()> {
+        let id: BerryId = vcsv::from_field(&record, 0)?;
+        let contest_type: ContestType = vcsv::from_field(&record, 1)?;
+        let flavor = Flavor::from(contest_type);
+        let value = vcsv::from_field(&record, 2)?;
+        self[flavor][id.0 as usize] = value;
+        Ok(())
+    }
 }
 
 impl std::ops::Index<Flavor> for BerryFlavorTable {
@@ -212,28 +256,5 @@ impl std::ops::IndexMut<Flavor> for BerryFlavorTable {
             Flavor::Dry => &mut self.dry,
             Flavor::Bitter => &mut self.bitter,
         }
-    }
-}
-
-impl vcsv::FromCsvIncremental for BerryFlavorTable {
-    fn from_empty_csv() -> Self {
-        BerryFlavorTable {
-            spicy: [0; BERRY_COUNT],
-            sour: [0; BERRY_COUNT],
-            sweet: [0; BERRY_COUNT],
-            dry: [0; BERRY_COUNT],
-            bitter: [0; BERRY_COUNT],
-        }
-    }
-
-    fn load_csv_record(
-        &mut self, record: csv::StringRecord
-    ) -> vcsv::Result<()> {
-        let id: usize = vcsv::from_field(&record, 0)?;
-        let contest_type: ContestType = vcsv::from_field(&record, 1)?;
-        let flavor = Flavor::from(contest_type);
-        let value = vcsv::from_field(&record, 2)?;
-        self[flavor][id - 1] = value;
-        Ok(())
     }
 }

@@ -44,3 +44,15 @@ impl Pokedex {
         }
     }
 }
+
+pub static mut POKEDEX: Option<Pokedex> = None;
+static POKEDEX_ONCE: std::sync::Once = std::sync::ONCE_INIT;
+
+pub fn pokedex() -> &'static Pokedex {
+    unsafe {
+        POKEDEX_ONCE.call_once(|| {
+            POKEDEX = Some(Pokedex::new());
+        });
+        POKEDEX.as_ref().unwrap()
+    }
+}

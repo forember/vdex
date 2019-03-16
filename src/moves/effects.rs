@@ -342,6 +342,10 @@ pub enum Effect {
     Hurricane,
 }
 
+impl Default for Effect {
+    fn default() -> Self { Effect::RegularDamage }
+}
+
 impl FromVeekun for Effect {
     type Intermediate = u16;
 

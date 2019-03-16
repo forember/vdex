@@ -183,7 +183,7 @@ impl Default for Move {
 
 /// Wrapper of a `Vec` for all moves.
 ///
-/// An move's index is its Veekun ID minus 1.
+/// A move's index is its Veekun ID minus 1.
 ///
 /// Use `table.0` to access `Vec` members.
 pub struct MoveTable(pub Vec<Move>);
@@ -201,6 +201,20 @@ impl MoveTable {
         for i in 0..MOVE_COUNT {
             self.0[i].meta = meta_table.0[i];
         }
+    }
+}
+
+impl std::ops::Index<u16> for MoveTable {
+    type Output = Move;
+
+    fn index(&self, index: u16) -> &Move {
+        self.0.index(index as usize)
+    }
+}
+
+impl std::ops::IndexMut<u16> for MoveTable {
+    fn index_mut(&mut self, index: u16) -> &mut Move {
+        self.0.index_mut(index as usize)
     }
 }
 

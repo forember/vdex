@@ -50,6 +50,10 @@ pub enum Type {
     Dark,
 }
 
+impl Default for Type {
+    fn default() -> Self { Type::Normal }
+}
+
 impl FromVeekun for Efficacy {
     type Intermediate = u8;
 

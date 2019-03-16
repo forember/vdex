@@ -93,24 +93,24 @@ impl<T: Copy> OneOrTwo<T> {
 impl FromVeekun for EggGroup {
     type Intermediate = u8;
 
-    fn from_veekun(id: u8) -> Option<Self> {
-        Self::from_repr(id)
+    fn from_veekun(value: u8) -> Option<Self> {
+        Self::from_repr(value)
     }
 }
 
 impl FromVeekun for EvolutionTrigger {
     type Intermediate = u8;
 
-    fn from_veekun(id: u8) -> Option<Self> {
-        Self::from_repr(id)
+    fn from_veekun(value: u8) -> Option<Self> {
+        Self::from_repr(value)
     }
 }
 
 impl FromVeekun for Gender {
     type Intermediate = u8;
 
-    fn from_veekun(id: u8) -> Option<Self> {
-        Self::from_repr(id)
+    fn from_veekun(value: u8) -> Option<Self> {
+        Self::from_repr(value)
     }
 }
 
