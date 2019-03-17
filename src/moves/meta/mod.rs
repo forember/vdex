@@ -14,6 +14,7 @@ use crate::vcsv;
 use crate::vcsv::FromCsv;
 use crate::vdata;
 use crate::VeekunOption;
+use super::MoveId;
 
 /// Broad move category.
 #[EnumRepr(type = "u8")]
@@ -79,7 +80,7 @@ impl vcsv::FromCsvIncremental for StatChangeTable {
     fn load_csv_record(
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<()> {
-        let id = vcsv::from_field(&record, 0)?;
+        let id: MoveId = vcsv::from_field(&record, 0)?;
         if id.0 >= 10000 {
             return Ok(())
         }
@@ -136,13 +137,13 @@ impl MetaTable {
 
     fn set_flags(&mut self, flags_table: &FlagTable) {
         for (id, flags) in flags_table.0.iter() {
-            self[id].flags = *flags;
+            self[*id].flags = *flags;
         }
     }
 
     fn set_stat_changes(&mut self, stat_changes_table: &StatChangeTable) {
         for (id, stat_changes) in stat_changes_table.0.iter() {
-            self[id].stat_changes = *stat_changes;
+            self[*id].stat_changes = *stat_changes;
         }
     }
 }

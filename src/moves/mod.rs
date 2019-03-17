@@ -48,7 +48,7 @@ pub enum DamageClass {
     Special,
 }
 
-impl Default for BattleStyle {
+impl Default for DamageClass {
     fn default() -> Self { DamageClass::NonDamaging }
 }
 
@@ -85,7 +85,7 @@ pub enum LearnMethod {
     FormChange,
 }
 
-impl Default for BattleStyle {
+impl Default for LearnMethod {
     fn default() -> Self { LearnMethod::LevelUp }
 }
 
@@ -127,8 +127,8 @@ pub enum Target {
     EntireField,
 }
 
-impl Default for BattleStyle {
-    fn default() -> Self { LearnMethod::SpecificMove }
+impl Default for Target {
+    fn default() -> Self { Target::SpecificMove }
 }
 
 impl FromVeekun for Target {
@@ -221,7 +221,7 @@ impl MoveTable {
 
 impl Default for MoveTable {
     fn default() -> Self {
-        MoveTable(repeat(Vec::new()).take(MOVE_COUNT).collect::<Vec<_>>())
+        MoveTable(repeat(Default::default()).take(MOVE_COUNT).collect::<Vec<_>>())
     }
 }
 

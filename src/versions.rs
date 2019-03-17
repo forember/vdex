@@ -15,7 +15,7 @@ pub enum Generation {
     V,
 }
 
-fn Generation {
+impl Default for Generation {
     fn default() -> Self { Generation::V }
 }
 

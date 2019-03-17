@@ -23,13 +23,13 @@ fn assert_sanity() {
     assert_eq!(items::Category::MiracleShooter.repr(), 43);
     assert_eq!(items::Flavor::Bitter.repr(), 4);
     assert_eq!(items::FlingEffect::Flinch.repr(), 7);
-    assert_eq!(items::Pocket::Key.repr(), 8);
+    assert_eq!(items::Pocket::Key.repr(), 7);
     assert_eq!(moves::Ailment::Nightmare.repr(), 9);
     assert_eq!(moves::Ailment::HealBlock.repr(), 15);
     assert_eq!(moves::Ailment::Ingrain.repr(), 21);
-    assert_eq!(moves::BattleStyle::Support.repr(), 3);
+    assert_eq!(moves::BattleStyle::Support.repr(), 2);
     assert_eq!(moves::Category::Unique.repr(), 13);
-    assert_eq!(moves::DamageClass::Special.repr(), 3);
+    assert_eq!(moves::DamageClass::Special.repr(), 2);
     assert_eq!(moves::Effect::RaiseUserDefense.repr(), 12);
     assert_eq!(moves::Effect::LowerTargetSpeed.repr(), 21);
     assert_eq!(moves::Effect::RaiseUserSpecialDefense2.repr(), 55);
@@ -44,14 +44,14 @@ fn assert_sanity() {
     assert_eq!(moves::Effect::Bounce.repr(), 264);
     assert_eq!(moves::Effect::IceBurn.repr(), 333);
     assert_eq!(moves::Effect::Hurricane.repr(), 338);
-    assert_eq!(moves::LearnMethod::FormChange.repr(), 10);
-    assert_eq!(moves::Target::EntireField.repr(), 12);
+    assert_eq!(moves::LearnMethod::FormChange.repr(), 9);
+    assert_eq!(moves::Target::EntireField.repr(), 11);
     assert_eq!(pokemon::EggGroup::NoEggs.repr(), 15);
     assert_eq!(pokemon::EvolutionTrigger::Shed.repr(), 4);
     assert_eq!(pokemon::Gender::Genderless.repr(), 3);
-    assert_eq!(versions::Generation::V.repr(), 5);
-    assert_eq!(versions::Version::White2.repr(), 22);
-    assert_eq!(versions::VersionGroup::BlackWhite2.repr(), 14);
+    assert_eq!(versions::Generation::V.repr(), 4);
+    assert_eq!(versions::Version::White2.repr(), 21);
+    assert_eq!(versions::VersionGroup::BlackWhite2.repr(), 13);
 }
 
 #[test]

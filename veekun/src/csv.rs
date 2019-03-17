@@ -9,7 +9,7 @@ use crate::repr::FromVeekunField;
 /// Miscellaneous error intended for `Error::Veekun`. Just wraps a string
 /// literal.
 #[derive(Debug)]
-pub struct MiscError(&'static str);
+pub struct MiscError(pub &'static str);
 
 impl From<&'static str> for MiscError {
     fn from(s: &'static str) -> Self {

@@ -1,9 +1,9 @@
 use std::collections::HashMap;
-use crate::enums::*;
 use crate::FromVeekun;
 use crate::vcsv;
 use crate::vcsv::FromCsv;
 use crate::vdata;
+use super::MoveId;
 
 bitflags! {
     /// Miscellaneous bitflags for moves.
@@ -69,7 +69,7 @@ impl vcsv::FromCsvIncremental for FlagTable {
     fn load_csv_record(
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<()> {
-        let id = vcsv::from_field(&record, 0)?;
+        let id: MoveId = vcsv::from_field(&record, 0)?;
         if id.0 >= 10000 {
             return Ok(())
         }
