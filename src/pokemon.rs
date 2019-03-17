@@ -112,11 +112,25 @@ pub enum OneOrTwo<T: Copy> {
 }
 
 impl<T: Copy> OneOrTwo<T> {
-    fn from_options(array: [Option<T>; 2]) -> Option<Self> {
+    pub fn from_options(array: [Option<T>; 2]) -> Option<Self> {
         array[0].and_then(|first| Some(match array[1] {
             Some(second) => OneOrTwo::Two(first, second),
             None => OneOrTwo::One(first),
         })).or_else(|| array[1].and_then(|second| Some(OneOrTwo::One(second))))
+    }
+
+    pub fn first(self) -> T {
+        match self {
+            OneOrTwo::One(t) => t,
+            OneOrTwo::Two(t, _) => t,
+        }
+    }
+
+    pub fn second(self) -> Option<T> {
+        match self {
+            OneOrTwo::One(_) => None,
+            OneOrTwo::Two(_, t) => Some(t),
+        }
     }
 }
 
@@ -124,7 +138,8 @@ impl<T: Copy + Default> Default for OneOrTwo<T> {
     fn default() -> Self { OneOrTwo::One(Default::default()) }
 }
 
-const POKEMON_COUNT: usize = 673;
+/// The total number of Pokémon in pbirch.
+pub const POKEMON_COUNT: usize = 673;
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub struct PokemonId(pub u16);
@@ -590,7 +605,7 @@ pub struct EvolvesFrom {
     pub trigger: EvolutionTrigger,
     pub level: u8,
     pub gender: Gender,
-    pub move_id: u16,
+    pub move_id: MoveId,
     pub relative_physical_stats: Option<i8>,
 }
 
@@ -613,7 +628,7 @@ impl vcsv::FromCsvIncremental for EvolutionTable {
         let trigger = vcsv::from_field(&record, 2)?;
         let level = vcsv::from_option_field(&record, 4, 0)?;
         let gender = vcsv::from_option_field(&record, 5, Gender::Genderless)?;
-        let move_id = vcsv::from_option_field(&record, 9, 0)?;
+        let move_id = vcsv::from_option_field(&record, 9, Default::default())?;
         let rps: VeekunOption<_> = vcsv::from_field(&record, 12)?;
         self.0.insert(species_id, EvolvesFrom {
             from_id: Default::default(),

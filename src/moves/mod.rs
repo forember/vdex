@@ -8,6 +8,7 @@ pub use self::meta::Ailment;
 pub use self::meta::Category;
 pub use self::meta::Flags;
 pub use self::meta::Meta;
+pub use self::meta::CHANGEABLE_STATS;
 
 use std::iter::repeat;
 use crate::enums::*;
