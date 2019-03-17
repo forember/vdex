@@ -17,6 +17,24 @@ pub enum Efficacy {
     Super,
 }
 
+impl Default for Efficacy {
+    fn default() -> Self { Efficacy::Regular }
+}
+
+impl FromVeekun for Efficacy {
+    type Intermediate = u8;
+
+    fn from_veekun(value: u8) -> Option<Self> {
+        match value {
+            0 => Some(Efficacy::Not),
+            50 => Some(Efficacy::NotVery),
+            100 => Some(Efficacy::Regular),
+            200 => Some(Efficacy::Super),
+            _ => None,
+        }
+    }
+}
+
 /// The type of a Pokémon or move.
 ///
 /// > [*[From Bulbapedia:]*](https://bulbapedia.bulbagarden.net/wiki/Type) Types
@@ -54,35 +72,36 @@ impl Default for Type {
     fn default() -> Self { Type::Normal }
 }
 
-impl FromVeekun for Efficacy {
-    type Intermediate = u8;
-
-    fn from_veekun(value: u8) -> Option<Self> {
-        match value {
-            0 => Some(Efficacy::Not),
-            50 => Some(Efficacy::NotVery),
-            100 => Some(Efficacy::Regular),
-            200 => Some(Efficacy::Super),
-            _ => None,
-        }
-    }
-}
-
 impl FromVeekun for Type {
     type Intermediate = u8;
 
     fn from_veekun(value: u8) -> Option<Self> {
-        value.checked_sub(1).and_then(Type::from_repr)
+        value.checked_sub(1).and_then(Self::from_repr)
     }
 }
 
 /// Table of the efficacies of type combinations.
+#[derive(Default)]
 pub struct EfficacyTable([[Efficacy; Type::COUNT]; Type::COUNT]);
 
 impl EfficacyTable {
     /// Creates a type efficacy table from the included Veekun CSV data.
     pub fn new() -> Self {
         Self::from_csv_data(vdata::EFFICACY).unwrap()
+    }
+}
+
+impl vcsv::FromCsvIncremental for EfficacyTable {
+    fn from_empty_csv() -> Self { Default::default() }
+
+    fn load_csv_record(
+        &mut self, record: csv::StringRecord
+    ) -> vcsv::Result<()> {
+        let damage = vcsv::from_field(&record, 0)?;
+        let target = vcsv::from_field(&record, 1)?;
+        let efficacy = vcsv::from_field(&record, 2)?;
+        self[(damage, target)] = efficacy;
+        Ok(())
     }
 }
 
@@ -99,21 +118,5 @@ impl std::ops::IndexMut<(Type, Type)> for EfficacyTable {
     /// Access the efficacy of a (damage, target) type combination mutably.
     fn index_mut<'a>(&'a mut self, index: (Type, Type)) -> &'a mut Efficacy {
         &mut self.0[index.0.repr() as usize][index.1.repr() as usize]
-    }
-}
-
-impl vcsv::FromCsvIncremental for EfficacyTable {
-    fn from_empty_csv() -> Self {
-        EfficacyTable([[Efficacy::Regular; Type::COUNT]; Type::COUNT])
-    }
-
-    fn load_csv_record(
-        &mut self, record: csv::StringRecord
-    ) -> vcsv::Result<()> {
-        let damage = vcsv::from_field(&record, 0)?;
-        let target = vcsv::from_field(&record, 1)?;
-        let efficacy = vcsv::from_field(&record, 2)?;
-        self[(damage, target)] = efficacy;
-        Ok(())
     }
 }

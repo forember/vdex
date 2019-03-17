@@ -102,7 +102,7 @@ impl FromVeekun for BerryId {
     type Intermediate = u8;
 
     fn from_veekun(value: u8) -> Option<Self> {
-        let id = value - 1;
+        let id = value.checked_sub(1).unwrap_or_default();
         if id < (BERRY_COUNT as u8) {
             Some(BerryId(id))
         } else {

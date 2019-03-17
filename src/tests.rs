@@ -9,7 +9,7 @@ use crate::pokemon;
 use crate::versions;
 
 use crate::Enum;
-use crate::Pokedex;
+use crate::pokedex;
 use crate::to_pascal_case;
 
 #[test]
@@ -61,5 +61,5 @@ fn check_pascal_case() {
 
 #[test]
 fn load_pokedex() {
-    Pokedex::new();
+    pokedex();
 }

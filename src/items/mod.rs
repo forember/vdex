@@ -123,9 +123,7 @@ impl ItemTable {
 }
 
 impl vcsv::FromCsvIncremental for ItemTable {
-    fn from_empty_csv() -> Self {
-        ItemTable(HashMap::new())
-    }
+    fn from_empty_csv() -> Self { Default::default() }
 
     fn load_csv_record(
         &mut self, record: csv::StringRecord

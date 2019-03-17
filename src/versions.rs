@@ -3,6 +3,9 @@
 use crate::enums::*;
 use crate::FromVeekun;
 
+use self::Version as V;
+use self::VersionGroup as VG;
+
 #[EnumRepr(type = "u8")]
 pub enum Generation {
     I = 0,
@@ -10,6 +13,18 @@ pub enum Generation {
     III,
     IV,
     V,
+}
+
+fn Generation {
+    fn default() -> Self { Generation::V }
+}
+
+impl FromVeekun for Generation {
+    type Intermediate = u8;
+    
+    fn from_veekun(value: u8) -> Option<Self> {
+        value.checked_sub(1).and_then(Self::from_repr)
+    }
 }
 
 #[EnumRepr(type = "u8")]
@@ -38,48 +53,11 @@ pub enum Version {
     White2,
 }
 
-#[EnumRepr(type = "u8")]
-pub enum VersionGroup {
-    RedBlue = 0,
-    Yellow,
-    GoldSilver,
-    Crystal,
-    RubySapphire,
-    Emerald,
-    FireredLeafgreen,
-    DiamondPearl,
-    Platinum,
-    HeartgoldSoulsilver,
-    BlackWhite,
-    Colosseum,
-    XD,
-    BlackWhite2,
-}
-
-use crate::versions::Version as V;
-use crate::versions::VersionGroup as VG;
-
-impl FromVeekun for Generation {
-    type Intermediate = u8;
-    
-    fn from_veekun(value: u8) -> Option<Self> {
-        Self::from_repr(value - 1)
-    }
-}
-
 impl FromVeekun for Version {
     type Intermediate = u8;
     
     fn from_veekun(value: u8) -> Option<Self> {
-        Self::from_repr(value - 1)
-    }
-}
-
-impl FromVeekun for VersionGroup {
-    type Intermediate = u8;
-    
-    fn from_veekun(value: u8) -> Option<Self> {
-        Self::from_repr(value - 1)
+        value.checked_sub(1).and_then(Self::from_repr)
     }
 }
 
@@ -105,6 +83,32 @@ impl Version {
 
     pub fn generation(self) -> Generation {
         self.group().generation()
+    }
+}
+
+#[EnumRepr(type = "u8")]
+pub enum VersionGroup {
+    RedBlue = 0,
+    Yellow,
+    GoldSilver,
+    Crystal,
+    RubySapphire,
+    Emerald,
+    FireredLeafgreen,
+    DiamondPearl,
+    Platinum,
+    HeartgoldSoulsilver,
+    BlackWhite,
+    Colosseum,
+    XD,
+    BlackWhite2,
+}
+
+impl FromVeekun for VersionGroup {
+    type Intermediate = u8;
+    
+    fn from_veekun(value: u8) -> Option<Self> {
+        value.checked_sub(1).and_then(Self::from_repr)
     }
 }
 

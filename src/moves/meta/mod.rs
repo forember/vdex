@@ -8,7 +8,7 @@ pub use self::flags::FlagTable;
 use std::collections::HashMap;
 use crate::enums::*;
 use crate::FromVeekun;
-use crate::moves::{CHANGEABLE_STATS, MOVE_COUNT};
+use crate::moves::MOVE_COUNT;
 use crate::Stat;
 use crate::vcsv;
 use crate::vcsv::FromCsv;
@@ -60,6 +60,9 @@ impl FromVeekun for Category {
         Category::from_repr(value)
     }
 }
+
+/// The number of stats directly changeable by moves (all but HP).
+pub const CHANGEABLE_STATS: usize = 7;
 
 #[derive(Default)]
 pub struct StatChangeTable(pub HashMap<MoveId, [i8; CHANGEABLE_STATS]>);
@@ -133,13 +136,13 @@ impl MetaTable {
 
     fn set_flags(&mut self, flags_table: &FlagTable) {
         for (id, flags) in flags_table.0.iter() {
-            self.0[id - 1].flags = *flags;
+            self[id].flags = *flags;
         }
     }
 
     fn set_stat_changes(&mut self, stat_changes_table: &StatChangeTable) {
         for (id, stat_changes) in stat_changes_table.0.iter() {
-            self.0[id - 1].stat_changes = *stat_changes;
+            self[id].stat_changes = *stat_changes;
         }
     }
 }

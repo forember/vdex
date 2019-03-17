@@ -343,7 +343,7 @@ pub enum Effect {
 }
 
 impl Default for Effect {
-    fn default() -> Self { Effect::RegularDamage }
+    fn default() -> Self { Effect::Splash }
 }
 
 impl FromVeekun for Effect {

@@ -61,28 +61,6 @@ pub enum Nature {
     Quirky,
 }
 
-/// Stats are numbers associated with Pokémon affecting battle mechanics.
-///
-/// Some stats are only available in battle, whereas others are properties of
-/// the Pokémon.
-///
-/// > [*[From Bulbapedia:]*](https://bulbapedia.bulbagarden.net/wiki/Statistic)
-/// > A statistic (Japanese: 能力 ability), or stat for short, is an element
-/// > which determines certain aspects of battles in the games. Stats may also
-/// > refer to the numerical values of each field in regards to individual
-/// > Pokémon.
-#[EnumRepr(type = "i8")]
-pub enum Stat {
-    HP = -1,
-    Attack,
-    Defense,
-    Speed,
-    SpecialAttack,
-    SpecialDefense,
-    Accuracy,
-    Evasion,
-}
-
 impl Nature {
     /// Get which flavor is disliked, if any.
     pub fn disliked(self) -> Option<Flavor> {
@@ -107,6 +85,10 @@ impl Nature {
         }
         Stat::from_repr((x % 5) as i8).or_else(|| unreachable!())
     }
+}
+
+impl Default for Nature {
+    fn default() -> Self { Nature::Hardy }
 }
 
 impl FromVeekun for Nature {
@@ -144,6 +126,28 @@ impl FromVeekun for Nature {
     }
 }
 
+/// Stats are numbers associated with Pokémon affecting battle mechanics.
+///
+/// Some stats are only available in battle, whereas others are properties of
+/// the Pokémon.
+///
+/// > [*[From Bulbapedia:]*](https://bulbapedia.bulbagarden.net/wiki/Statistic)
+/// > A statistic (Japanese: 能力 ability), or stat for short, is an element
+/// > which determines certain aspects of battles in the games. Stats may also
+/// > refer to the numerical values of each field in regards to individual
+/// > Pokémon.
+#[EnumRepr(type = "i8")]
+pub enum Stat {
+    HP = -1,
+    Attack,
+    Defense,
+    Speed,
+    SpecialAttack,
+    SpecialDefense,
+    Accuracy,
+    Evasion,
+}
+
 impl FromVeekun for Stat {
     type Intermediate = u8;
 
@@ -163,6 +167,7 @@ impl FromVeekun for Stat {
 }
 
 /// Half of the table determining Battle Palace behavior. See `PalaceTable`.
+#[derive(Default)]
 pub struct HalfPalaceTable {
     pub attack: [u8; Nature::COUNT],
     pub defense: [u8; Nature::COUNT],
@@ -186,6 +191,7 @@ impl HalfPalaceTable {
 /// Table of probabilities determining Battle Palace behavior.
 ///
 /// There are two half tables, one for when HP is below half, one for otherwise.
+#[derive(Default)]
 pub struct PalaceTable {
     pub low: HalfPalaceTable,
     pub high: HalfPalaceTable,
@@ -199,18 +205,7 @@ impl PalaceTable {
 }
 
 impl vcsv::FromCsvIncremental for PalaceTable {
-    fn from_empty_csv() -> Self {
-        PalaceTable {
-            low: HalfPalaceTable {
-                attack: [0; Nature::COUNT],
-                defense: [0; Nature::COUNT],
-            },
-            high: HalfPalaceTable {
-                attack: [0; Nature::COUNT],
-                defense: [0; Nature::COUNT],
-            },
-        }
-    }
+    fn from_empty_csv() -> Self { Default::default() }
 
     fn load_csv_record(
         &mut self, record: csv::StringRecord

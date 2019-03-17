@@ -1,4 +1,4 @@
-//! TODO: Under construction.
+//! Pokemon and related data.
 
 use std::collections::HashMap;
 use std::iter::repeat;
@@ -15,12 +15,6 @@ use crate::vdata;
 use crate::VeekunOption;
 use veekun::repr::VeekunString;
 use crate::versions::{Generation, VersionGroup};
-
-/// The number of stats that exist out of battle (all but accuracy and evasion).
-pub const PERMANENT_STATS: usize = 6;
-/// The total number of Pokémon species in pbirch.
-pub const SPECIES_COUNT: usize = 649;
-const POKEMON_COUNT: usize = 673;
 
 /// The groups of Pokémon which can interbreed.
 ///
@@ -48,6 +42,18 @@ pub enum EggGroup {
     NoEggs,
 }
 
+impl Default for EggGroup {
+    fn default() -> Self { EggGroup::NoEggs }
+}
+
+impl FromVeekun for EggGroup {
+    type Intermediate = u8;
+
+    fn from_veekun(value: u8) -> Option<Self> {
+        Self::from_repr(value)
+    }
+}
+
 /// The method by which a Pokémon evolves.
 #[EnumRepr(type = "u8")]
 pub enum EvolutionTrigger {
@@ -55,6 +61,18 @@ pub enum EvolutionTrigger {
     Trade,
     UseItem,
     Shed,
+}
+
+impl Default for EvolutionTrigger {
+    fn default() -> Self { EvolutionTable::Trade }
+}
+
+impl FromVeekun for EvolutionTrigger {
+    type Intermediate = u8;
+
+    fn from_veekun(value: u8) -> Option<Self> {
+        Self::from_repr(value)
+    }
 }
 
 /// > [*[From Bulbapedia:]*](https://bulbapedia.bulbagarden.net/wiki/Gender) The
@@ -74,6 +92,18 @@ pub enum Gender {
     Genderless,
 }
 
+impl Default for Gender {
+    fn default() -> Self { Gender::Genderless }
+}
+
+impl FromVeekun for Gender {
+    type Intermediate = u8;
+
+    fn from_veekun(value: u8) -> Option<Self> {
+        Self::from_repr(value)
+    }
+}
+
 /// Either one or two elements.
 #[derive(Copy, Clone, Debug)]
 pub enum OneOrTwo<T: Copy> {
@@ -90,49 +120,77 @@ impl<T: Copy> OneOrTwo<T> {
     }
 }
 
-impl FromVeekun for EggGroup {
-    type Intermediate = u8;
+impl<T: Copy + Default> Default for OneOrTwo<T> {
+    fn default() -> Self { OneOrTwo::One(Default::default()) }
+}
 
-    fn from_veekun(value: u8) -> Option<Self> {
-        Self::from_repr(value)
+const POKEMON_COUNT: usize = 673;
+
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+pub struct PokemonId(pub u16);
+
+impl Default for PokemonId {
+    fn default() -> Self { PokemonId(std::u16::MAX) }
+}
+
+impl FromVeekun for PokemonId {
+    type Intermediate = u16;
+
+    fn from_veekun(value: u16) -> Option<Self> {
+        let id = value.checked_sub(1).unwrap_or_default();
+        if id < (POKEMON_COUNT as u16) {
+            Some(PokemonId(id))
+        } else {
+            None
+        }
     }
 }
 
-impl FromVeekun for EvolutionTrigger {
-    type Intermediate = u8;
-
-    fn from_veekun(value: u8) -> Option<Self> {
-        Self::from_repr(value)
-    }
-}
-
-impl FromVeekun for Gender {
-    type Intermediate = u8;
-
-    fn from_veekun(value: u8) -> Option<Self> {
-        Self::from_repr(value)
-    }
-}
-
+#[derive(Default)]
 struct AbilityTable([[Option<Ability>; 3]; POKEMON_COUNT]);
 
-impl vcsv::FromCsvIncremental for AbilityTable {
-    fn from_empty_csv() -> Self {
-        AbilityTable([[None; 3]; POKEMON_COUNT])
+impl AbilityTable {
+    fn new() -> Self {
+        AbilityTable::from_csv_data(vdata::ABILITIES).unwrap()
     }
+}
+
+impl vcsv::FromCsvIncremental for AbilityTable {
+    fn from_empty_csv() -> Self { Default::default() }
 
     fn load_csv_record(
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<()> {
-        let pokemon_id: usize = vcsv::from_field(&record, 0)?;
+        let id: PokemonId = vcsv::from_field(&record, 0)?;
         let ability = vcsv::from_field(&record, 1)?;
         let slot: usize = vcsv::from_field(&record, 3)?;
-        self.0[pokemon_id - 1][slot - 1] = Some(ability);
+        if slot < 1 && slot > 3 {
+            return Err(vcsv::Error::Veekun {
+                line: record.position(),
+                field: 3,
+                error: Box::new(vcsv::MiscError("Invalid slot number")),
+            });
+        }
+        self[id][slot - 1] = Some(ability);
         Ok(())
     }
 }
 
-#[derive(Clone, Debug)]
+impl std::ops::Index<PokemonId> for AbilityTable {
+    type Output = [Option<Ability>; 3];
+
+    fn index(&self, index: PokemonId) -> &[Option<Ability>; 3] {
+        self.0.index(index.0 as usize)
+    }
+}
+
+impl std::ops::IndexMut<PokemonId> for AbilityTable {
+    fn index_mut(&mut self, index: PokemonId) -> &mut [Option<Ability>; 3] {
+        self.0.index_mut(index.0 as usize)
+    }
+}
+
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Form {
     pub id: u16,
     pub name: Option<String>,
@@ -141,20 +199,30 @@ pub struct Form {
 
 struct FormTable(Vec<Vec<Form>>);
 
-impl vcsv::FromCsvIncremental for FormTable {
-    fn from_empty_csv() -> Self {
+impl FormTable {
+    fn new() -> Self {
+        FormTable::from_csv_data(vdata::FORMS).unwrap()
+    }
+}
+
+impl Default for FormTable {
+    fn default() -> Self {
         FormTable(repeat(Vec::new()).take(POKEMON_COUNT).collect::<Vec<_>>())
     }
+}
+
+impl vcsv::FromCsvIncremental for FormTable {
+    fn from_empty_csv() -> Self { Default::default() }
 
     fn load_csv_record(
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<()> {
-        let id = vcsv::from_field(&record, 0)?;
+        let form_id = vcsv::from_field(&record, 0)?;
         let name: VeekunOption<VeekunString> = vcsv::from_field(&record, 1)?;
-        let pokemon_id: usize = vcsv::from_field(&record, 2)?;
+        let pokemon_id: PokemonId = vcsv::from_field(&record, 2)?;
         let battle_only: u8 = vcsv::from_field(&record, 5)?;
-        self.0[pokemon_id - 1].push(Form {
-            id,
+        self[pokemon_id].push(Form {
+            id: form_id,
             name: name.into(),
             battle_only: battle_only != 0,
         });
@@ -162,45 +230,80 @@ impl vcsv::FromCsvIncremental for FormTable {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+impl std::ops::Index<PokemonId> for FormTable {
+    type Output = Vec<Form>;
+
+    fn index(&self, index: PokemonId) -> &Vec<Form> {
+        self.0.index(index.0 as usize)
+    }
+}
+
+impl std::ops::IndexMut<PokemonId> for FormTable {
+    fn index_mut(&mut self, index: PokemonId) -> &mut Vec<Form> {
+        self.0.index_mut(index.0 as usize)
+    }
+}
+
+#[derive(Copy, Clone, Debug, Default)]
 pub struct PokemonMove {
-    pub move_id: u16,
+    pub move_id: MoveId,
     pub learn_method: LearnMethod,
     pub level: u8,
 }
 
 struct PokemonMoveTable(Vec<HashMap<VersionGroup, Vec<PokemonMove>>>);
 
-impl vcsv::FromCsvIncremental for PokemonMoveTable {
-    fn from_empty_csv() -> Self {
+impl PokemonMoveTable {
+    fn new() -> Self {
+        PokemonMoveTable::from_csv_data(vdata::POKEMON_MOVES).unwrap()
+    }
+}
+
+impl Default for PokemonMoveTable {
+    fn default() -> Self {
         PokemonMoveTable(repeat(HashMap::new())
                 .take(POKEMON_COUNT).collect::<Vec<_>>())
     }
+}
+
+impl vcsv::FromCsvIncremental for PokemonMoveTable {
+    fn from_empty_csv() -> Self { Default::default() }
 
     fn load_csv_record(
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<()> {
-        let pokemon_id: usize = vcsv::from_field(&record, 0)?;
+        let pokemon_id: PokemonId = vcsv::from_field(&record, 0)?;
         let version_group = vcsv::from_field(&record, 1)?;
         let move_id = vcsv::from_field(&record, 2)?;
         let learn_method = vcsv::from_field(&record, 3)?;
         let level = vcsv::from_field(&record, 4)?;
         let pokemon_move = PokemonMove { move_id, learn_method, level };
-        self.0[pokemon_id - 1].entry(version_group)
+        self[pokemon_id].entry(version_group)
             .or_insert(Vec::new()).push(pokemon_move);
         Ok(())
     }
 }
 
-/// A Pokémon's base permanent stats.
-#[derive(Copy, Clone, Debug)]
-pub struct BaseStats(pub [u8; PERMANENT_STATS]);
+impl std::ops::Index<PokemonId> for FormTable {
+    type Output = Vec<Form>;
 
-impl Default for BaseStats {
-    fn default() -> Self {
-        BaseStats([0; PERMANENT_STATS])
+    fn index(&self, index: PokemonId) -> &Vec<Form> {
+        self.0.index(index.0 as usize)
     }
 }
+
+impl std::ops::IndexMut<PokemonId> for FormTable {
+    fn index_mut(&mut self, index: PokemonId) -> &mut Vec<Form> {
+        self.0.index_mut(index.0 as usize)
+    }
+}
+
+/// The number of stats that exist out of battle (all but accuracy and evasion).
+pub const PERMANENT_STATS: usize = 6;
+
+/// A Pokémon's base permanent stats.
+#[derive(Copy, Clone, Debug, Default)]
+pub struct BaseStats(pub [u8; PERMANENT_STATS]);
 
 impl std::ops::Index<Stat> for BaseStats {
     type Output = u8;
@@ -216,45 +319,99 @@ impl std::ops::IndexMut<Stat> for BaseStats {
     }
 }
 
+#[derive(Default)]
 struct StatTable([BaseStats; POKEMON_COUNT]);
 
-impl vcsv::FromCsvIncremental for StatTable {
-    fn from_empty_csv() -> Self {
-        StatTable([Default::default(); POKEMON_COUNT])
+impl StatTable {
+    fn new() -> Self {
+        StatTable::from_csv_data(vdata::STATS).unwrap()
     }
+}
+
+impl vcsv::FromCsvIncremental for StatTable {
+    fn from_empty_csv() -> Self { Default::default() }
 
     fn load_csv_record(
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<()> {
-        let id: usize = vcsv::from_field(&record, 0)?;
+        let id: PokemonId = vcsv::from_field(&record, 0)?;
         let stat = vcsv::from_field(&record, 1)?;
         let base = vcsv::from_field(&record, 2)?;
-        self.0[id - 1][stat] = base;
+        self[id][stat] = base;
         Ok(())
     }
 }
 
+impl std::ops::Index<PokemonId> for StatTable {
+    type Output = BaseStats;
+
+    fn index(&self, index: PokemonId) -> &BaseStats {
+        self.0.index(index.0 as usize)
+    }
+}
+
+impl std::ops::IndexMut<PokemonId> for StatTable {
+    fn index_mut(&mut self, index: PokemonId) -> &mut BaseStats {
+        self.0.index_mut(index.0 as usize)
+    }
+}
+
+#[derive(Default)]
 struct TypeTable([[Option<Type>; 2]; POKEMON_COUNT]);
 
-impl vcsv::FromCsvIncremental for TypeTable {
-    fn from_empty_csv() -> Self {
-        TypeTable([[None; 2]; POKEMON_COUNT])
+impl TypeTable {
+    fn new() -> Self {
+        TypeTable::from_csv_data(vdata::TYPES).unwrap()
     }
+}
+
+impl vcsv::FromCsvIncremental for TypeTable {
+    fn from_empty_csv() -> Self { Default::default() }
 
     fn load_csv_record(
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<()> {
-        let pokemon_id: usize = vcsv::from_field(&record, 0)?;
+        let id: PokemonId = vcsv::from_field(&record, 0)?;
         let typ = vcsv::from_field(&record, 1)?;
         let slot: usize = vcsv::from_field(&record, 2)?;
-        self.0[pokemon_id - 1][slot - 1] = Some(typ);
+        if slot < 1 && slot > 2 {
+            return Err(vcsv::Error::Veekun {
+                line: record.position(),
+                field: 2,
+                error: Box::new(vcsv::MiscError("Invalid slot number")),
+            });
+        }
+        self.0[id][slot - 1] = Some(typ);
         Ok(())
     }
 }
 
-#[derive(Clone, Debug)]
+/// The total number of Pokémon species in pbirch.
+pub const SPECIES_COUNT: usize = 649;
+
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+pub struct SpeciesId(pub u16);
+
+impl Default for SpeciesId {
+    fn default() -> Self { SpeciesId(std::u16::MAX) }
+}
+
+impl FromVeekun for SpeciesId {
+    type Intermediate = u16;
+
+    fn from_veekun(value: u16) -> Option<Self> {
+        let id = value.checked_sub(1).unwrap_or_default();
+        if id < (SPECIES_COUNT as u16) {
+            Some(SpeciesId(id))
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default)]
 pub struct Pokemon {
-    pub id: u16,
+    pub id: PokemonId,
     pub abilities: OneOrTwo<Ability>,
     pub hidden_ability: Option<Ability>,
     pub forms: Vec<Form>,
@@ -265,46 +422,51 @@ pub struct Pokemon {
 
 struct PokemonTable(Vec<Vec<Pokemon>>);
 
-impl vcsv::FromCsvIncremental for PokemonTable {
-    fn from_empty_csv() -> Self {
+impl Default for PokemonTable {
+    fn default() -> Self {
         PokemonTable(repeat(Vec::new()).take(SPECIES_COUNT).collect::<Vec<_>>())
     }
+}
+
+impl vcsv::FromCsvIncremental for PokemonTable {
+    fn from_empty_csv() -> Self { Default::default() }
 
     fn load_csv_record(
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<()> {
-        let pokemon_id: u16 = vcsv::from_field(&record, 0)?;
-        let species_id: usize = vcsv::from_field(&record, 1)?;
-        self.0[species_id - 1].push(Pokemon {
+        let pokemon_id: PokemonId = vcsv::from_field(&record, 0)?;
+        let species_id: SpeciesId = vcsv::from_field(&record, 1)?;
+        self[species_id].push(Pokemon {
             id: pokemon_id,
-            abilities: OneOrTwo::One(Ability::Stench),
-            hidden_ability: None,
-            forms: Vec::new(),
-            moves: HashMap::new(),
-            stats: Default::default(),
-            types: OneOrTwo::One(Type::Normal),
+            .. Default::default()
         });
         Ok(())
     }
 }
 
+impl std::ops::Index<SpeciesId> for PokemonTable {
+    type Output = Vec<Pokemon>;
+
+    fn index(&self, index: SpeciesId) -> &Vec<Pokemon> {
+        self.0.index(index.0 as usize)
+    }
+}
+
+impl std::ops::IndexMut<SpeciesId> for PokemonTable {
+    fn index_mut(&mut self, index: SpeciesId) -> &mut Vec<Pokemon> {
+        self.0.index_mut(index.0 as usize)
+    }
+}
+
 impl PokemonTable {
     fn new() -> Self {
-        let ability_table
-            = AbilityTable::from_csv_data(vdata::ABILITIES).unwrap();
-        let form_table = FormTable::from_csv_data(vdata::FORMS).unwrap();
-        let move_table
-            = PokemonMoveTable::from_csv_data(vdata::POKEMON_MOVES).unwrap();
-        let stat_table = StatTable::from_csv_data(vdata::STATS).unwrap();
-        let type_table = TypeTable::from_csv_data(vdata::TYPES).unwrap();
-        let mut pokemon_table
-            = PokemonTable::from_csv_data(vdata::POKEMON).unwrap();
-        pokemon_table.set_abilities(&ability_table);
-        pokemon_table.set_forms(&form_table);
-        pokemon_table.set_moves(&move_table);
-        pokemon_table.set_types(&type_table);
-        pokemon_table.set_stats(&stat_table);
-        pokemon_table
+        let mut table = PokemonTable::from_csv_data(vdata::POKEMON).unwrap();
+        table.set_abilities(&AbilityTable::new());
+        table.set_forms(&FormTable::new());
+        table.set_moves(&PokemonMoveTable::new());
+        table.set_types(&TypeTable::new());
+        table.set_stats(&StatTable::new());
+        table
     }
 
     fn set_abilities(&mut self, ability_table: &AbilityTable) {
@@ -358,24 +520,48 @@ impl PokemonTable {
 
 struct EggGroupTable(Vec<Vec<EggGroup>>);
 
-impl vcsv::FromCsvIncremental for EggGroupTable {
-    fn from_empty_csv() -> Self {
+impl EggGroupTable {
+    fn new() -> Self {
+        EggGroupTable::from_csv_data(vdata::EGG_GROUPS).unwrap()
+    }
+}
+
+impl Default for EggGroupTable {
+    fn default() -> Self {
         EggGroupTable(repeat(Vec::new()).take(SPECIES_COUNT).collect::<Vec<_>>())
     }
+}
+
+impl vcsv::FromCsvIncremental for EggGroupTable {
+    fn from_empty_csv() -> Self { Default::default() }
 
     fn load_csv_record(
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<()> {
-        let id: usize = vcsv::from_field(&record, 0)?;
+        let id: SpeciesId = vcsv::from_field(&record, 0)?;
         let egg_group = vcsv::from_field(&record, 1)?;
-        self.0[id - 1].push(egg_group);
+        self[id].push(egg_group);
         Ok(())
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+impl std::ops::Index<SpeciesId> for PokemonTable {
+    type Output = Vec<EggGroup>;
+
+    fn index(&self, index: SpeciesId) -> &Vec<EggGroup> {
+        self.0.index(index.0 as usize)
+    }
+}
+
+impl std::ops::IndexMut<SpeciesId> for PokemonTable {
+    fn index_mut(&mut self, index: SpeciesId) -> &mut Vec<EggGroup> {
+        self.0.index_mut(index.0 as usize)
+    }
+}
+
+#[derive(Copy, Clone, Debug, Default)]
 pub struct EvolvesFrom {
-    pub from_id: u16,
+    pub from_id: SpeciesId,
     pub trigger: EvolutionTrigger,
     pub level: u8,
     pub gender: Gender,
@@ -383,24 +569,29 @@ pub struct EvolvesFrom {
     pub relative_physical_stats: Option<i8>,
 }
 
-struct EvolutionTable(HashMap<u16, EvolvesFrom>);
+#[derive(Default)]
+struct EvolutionTable(HashMap<SpeciesId, EvolvesFrom>);
+
+impl EvolutionTable {
+    fn new() -> Self {
+        EvolutionTable::from_csv_data(vdata::EVOLUTION).unwrap()
+    }
+}
 
 impl vcsv::FromCsvIncremental for EvolutionTable {
-    fn from_empty_csv() -> Self {
-        EvolutionTable(HashMap::new())
-    }
+    fn from_empty_csv() -> Self { Default::default() }
 
     fn load_csv_record(
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<()> {
-        let species_id: u16 = vcsv::from_field(&record, 1)?;
+        let species_id = vcsv::from_field(&record, 1)?;
         let trigger = vcsv::from_field(&record, 2)?;
         let level = vcsv::from_option_field(&record, 4, 0)?;
         let gender = vcsv::from_option_field(&record, 5, Gender::Genderless)?;
         let move_id = vcsv::from_option_field(&record, 9, 0)?;
         let rps: VeekunOption<_> = vcsv::from_field(&record, 12)?;
         self.0.insert(species_id, EvolvesFrom {
-            from_id: 0,
+            from_id: Default::default(),
             trigger,
             level,
             gender,
@@ -411,7 +602,15 @@ impl vcsv::FromCsvIncremental for EvolutionTable {
     }
 }
 
-#[derive(Clone, Debug)]
+impl std::ops::Index<SpeciesId> for EvolutionTable {
+    type Output = EvolvesFrom;
+
+    fn index(&self, index: SpeciesId) -> &EvolvesFrom {
+        self.0.index(index.0 as usize)
+    }
+}
+
+#[derive(Clone, Debug, Default)]
 pub struct Species {
     pub name: String,
     pub generation: Generation,
@@ -422,54 +621,55 @@ pub struct Species {
 
 pub struct SpeciesTable(Vec<Species>);
 
-impl vcsv::FromCsvIncremental for SpeciesTable {
-    fn from_empty_csv() -> Self {
-        let default = Species {
-            name: String::new(),
-            generation: Generation::I,
-            pokemon: Vec::new(),
-            egg_groups: OneOrTwo::One(EggGroup::NoEggs),
-            evolves_from: None,
-        };
-        SpeciesTable(repeat(default).take(POKEMON_COUNT).collect::<Vec<_>>())
+impl Default {
+    fn default() -> Self {
+        SpeciesTable(repeat(Default::default())
+                .take(SPECIES_COUNT).collect::<Vec<_>>())
     }
+}
+
+impl vcsv::FromCsvIncremental for SpeciesTable {
+    fn from_empty_csv() -> Self { Default::default() }
 
     fn load_csv_record(
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<()> {
-        let id: usize = vcsv::from_field(&record, 0)?;
+        let id: SpeciesId = vcsv::from_field(&record, 0)?;
         let identifier: VeekunString = vcsv::from_field(&record, 1)?;
         let generation = vcsv::from_field(&record, 2)?;
-        let i = id - 1;
-        self.0[i].name = to_pascal_case(identifier.as_str());
-        self.0[i].generation = generation;
+        self[id].name = to_pascal_case(identifier.as_str());
+        self[id].generation = generation;
         if let VeekunOption(Some(from_id)) = vcsv::from_field(&record, 3)? {
-            self.0[i].evolves_from = Some(EvolvesFrom {
+            self[id].evolves_from = Some(EvolvesFrom {
                 from_id,
-                trigger: EvolutionTrigger::LevelUp,
-                level: 0,
-                gender: Gender::Genderless,
-                move_id: 0,
-                relative_physical_stats: None,
+                .. Default::default()
             });
         }
         Ok(())
     }
 }
 
+impl std::ops::Index<SpeciesId> for PokemonTable {
+    type Output = Species;
+
+    fn index(&self, index: SpeciesId) -> &Species {
+        self.0.index(index.0 as usize)
+    }
+}
+
+impl std::ops::IndexMut<SpeciesId> for PokemonTable {
+    fn index_mut(&mut self, index: SpeciesId) -> &mut Species {
+        self.0.index_mut(index.0 as usize)
+    }
+}
+
 impl SpeciesTable {
     pub fn new() -> Self {
-        let pokemon_table = PokemonTable::new();
-        let egg_group_table
-            = EggGroupTable::from_csv_data(vdata::EGG_GROUPS).unwrap();
-        let evolution_table
-            = EvolutionTable::from_csv_data(vdata::EVOLUTION).unwrap();
-        let mut species_table
-            = SpeciesTable::from_csv_data(vdata::SPECIES).unwrap();
-        species_table.set_pokemon(&pokemon_table);
-        species_table.set_egg_groups(&egg_group_table);
-        species_table.set_evolutions(&evolution_table);
-        species_table
+        let mut table = SpeciesTable::from_csv_data(vdata::SPECIES).unwrap();
+        table.set_pokemon(&PokemonTable::new());
+        table.set_egg_groups(&EggGroupTable::new());
+        table.set_evolutions(&EvolutionTable::new());
+        table
     }
 
     fn set_pokemon(&mut self, pokemon_table: &PokemonTable) {

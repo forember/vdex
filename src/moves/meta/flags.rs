@@ -70,7 +70,7 @@ impl vcsv::FromCsvIncremental for FlagTable {
         &mut self, record: csv::StringRecord
     ) -> vcsv::Result<()> {
         let id = vcsv::from_field(&record, 0)?;
-        if id >= 10000 {
+        if id.0 >= 10000 {
             return Ok(())
         }
         let flag = vcsv::from_field(&record, 1)?;

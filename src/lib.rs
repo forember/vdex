@@ -33,6 +33,7 @@ pub struct Pokedex {
     pub species: pokemon::SpeciesTable,
 }
 
+/// All the data in vdex.
 impl Pokedex {
     pub fn new() -> Self {
         Pokedex {
@@ -48,6 +49,7 @@ impl Pokedex {
 pub static mut POKEDEX: Option<Pokedex> = None;
 static POKEDEX_ONCE: std::sync::Once = std::sync::ONCE_INIT;
 
+/// START HERE: Load (if not loaded) and return the global Pokedex instance.
 pub fn pokedex() -> &'static Pokedex {
     unsafe {
         POKEDEX_ONCE.call_once(|| {

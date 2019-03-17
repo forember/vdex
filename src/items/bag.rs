@@ -153,6 +153,6 @@ impl FromVeekun for Pocket {
     type Intermediate = u8;
 
     fn from_veekun(value: u8) -> Option<Self> {
-        Pocket::from_repr(value - 1)
+        value.checked_sub(1).and_then(Self::from_repr)
     }
 }
