@@ -517,7 +517,7 @@ impl PokemonTable {
         for species in self.0.iter_mut() {
             for mut pokemon in species {
                 let id = pokemon.id;
-                let options = [ability_table[id][0], ability_table[id][0]];
+                let options = [ability_table[id][0], ability_table[id][1]];
                 pokemon.abilities = OneOrTwo::from_options(options).unwrap();
                 pokemon.hidden_ability = ability_table[id][2];
             }
