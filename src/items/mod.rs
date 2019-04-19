@@ -45,7 +45,7 @@ impl FromVeekun for FlingEffect {
     }
 }
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
 pub struct ItemId(pub u16);
 
 impl Default for ItemId {

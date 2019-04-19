@@ -143,7 +143,7 @@ impl FromVeekun for Target {
 /// The total number of moves in pbirch.
 pub const MOVE_COUNT: usize = 559;
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
 pub struct MoveId(pub u16);
 
 impl Default for MoveId {

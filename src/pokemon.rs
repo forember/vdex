@@ -143,7 +143,7 @@ impl<T: Copy + Default> Default for OneOrTwo<T> {
 /// The total number of Pokémon in pbirch.
 pub const POKEMON_COUNT: usize = 673;
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
 pub struct PokemonId(pub u16);
 
 impl Default for PokemonId {
@@ -435,7 +435,7 @@ impl std::ops::IndexMut<PokemonId> for TypeTable {
 /// The total number of Pokémon species in pbirch.
 pub const SPECIES_COUNT: usize = 649;
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
 pub struct SpeciesId(pub u16);
 
 impl Default for SpeciesId {
