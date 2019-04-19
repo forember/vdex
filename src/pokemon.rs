@@ -75,6 +75,8 @@ impl FromVeekun for EvolutionTrigger {
     }
 }
 
+/// Gender of a Pokémon.
+///
 /// > [*[From Bulbapedia:]*](https://bulbapedia.bulbagarden.net/wiki/Gender) The
 /// > gender (Japanese: 性別 sex) of a Pokémon is a concept introduced in
 /// > Generation II, though touched upon in Generation I. In Gold and Silver
@@ -654,6 +656,7 @@ impl std::ops::Index<SpeciesId> for EvolutionTable {
 pub struct Species {
     pub name: String,
     pub generation: Generation,
+    pub gender_rate: i8,
     pub pokemon: Vec<Pokemon>,
     pub egg_groups: OneOrTwo<EggGroup>,
     pub evolves_from: Option<EvolvesFrom>,
@@ -677,8 +680,10 @@ impl vcsv::FromCsvIncremental for SpeciesTable {
         let id: SpeciesId = vcsv::from_field(&record, 0)?;
         let identifier: VeekunString = vcsv::from_field(&record, 1)?;
         let generation = vcsv::from_field(&record, 2)?;
+        let gender_rate = vcsv::from_field(&record, 8)?;
         self[id].name = to_pascal_case(identifier.as_str());
         self[id].generation = generation;
+        self[id].gender_rate = gender_rate;
         if let VeekunOption(Some(from_id)) = vcsv::from_field(&record, 3)? {
             self[id].evolves_from = Some(EvolvesFrom {
                 from_id,
