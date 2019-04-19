@@ -654,6 +654,7 @@ impl std::ops::Index<SpeciesId> for EvolutionTable {
 
 #[derive(Clone, Debug, Default)]
 pub struct Species {
+    pub id: SpeciesId,
     pub name: String,
     pub generation: Generation,
     pub gender_rate: i8,
@@ -681,6 +682,7 @@ impl vcsv::FromCsvIncremental for SpeciesTable {
         let identifier: VeekunString = vcsv::from_field(&record, 1)?;
         let generation = vcsv::from_field(&record, 2)?;
         let gender_rate = vcsv::from_field(&record, 8)?;
+        self[id].id = id;
         self[id].name = to_pascal_case(identifier.as_str());
         self[id].generation = generation;
         self[id].gender_rate = gender_rate;

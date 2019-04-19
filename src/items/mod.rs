@@ -73,6 +73,8 @@ impl FromVeekun for ItemId {
 /// > Pokémon, or to access a new area.
 #[derive(Clone, Debug, Default)]
 pub struct Item {
+    /// The pbirch id for the item.
+    pub id: ItemId,
     /// The pbirch name for the item.
     pub name: String,
     /// The item's category.
@@ -131,6 +133,7 @@ impl vcsv::FromCsvIncremental for ItemTable {
         let id = vcsv::from_field(&record, 0)?;
         let fling_power: VeekunOption<_> = vcsv::from_field(&record, 4)?;
         self.0.insert(id, Item {
+            id,
             name: to_pascal_case(vcsv::get_field(&record, 1)?),
             category: vcsv::from_field(&record, 2)?,
             cost: vcsv::from_field(&record, 3)?,
