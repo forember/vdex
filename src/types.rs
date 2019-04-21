@@ -17,6 +17,17 @@ pub enum Efficacy {
     Super,
 }
 
+impl Efficacy {
+    pub fn modifier(self) -> f64 {
+        match self {
+            Efficacy::Not => 0.0,
+            Efficacy::NotVery => 0.5,
+            Efficacy::Regular => 1.0,
+            Efficacy::Super => 2.0,
+        }
+    }
+}
+
 impl Default for Efficacy {
     fn default() -> Self { Efficacy::Regular }
 }

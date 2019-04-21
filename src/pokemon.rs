@@ -134,6 +134,10 @@ impl<T: Copy> OneOrTwo<T> {
             OneOrTwo::Two(_, t) => Some(t),
         }
     }
+
+    pub fn contains(self, x: T) -> bool where T: PartialEq<T> {
+        self.first() == x || self.second().map_or(false, |y| y == x)
+    }
 }
 
 impl<T: Copy + Default> Default for OneOrTwo<T> {
