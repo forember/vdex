@@ -42,7 +42,7 @@ pub enum Error {
         /// Field number on the line.
         field: usize,
         /// Error object (usually of type `veekun::repr::Error`).
-        error: Box<StdError>,
+        error: Box<dyn StdError>,
     },
 }
 

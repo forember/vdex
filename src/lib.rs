@@ -47,7 +47,7 @@ impl Pokedex {
 }
 
 static mut POKEDEX: Option<Pokedex> = None;
-static POKEDEX_ONCE: std::sync::Once = std::sync::ONCE_INIT;
+static POKEDEX_ONCE: std::sync::Once = std::sync::Once::new();
 
 /// START HERE: Load (if not loaded) and return the global Pokedex instance.
 pub fn pokedex() -> &'static Pokedex {

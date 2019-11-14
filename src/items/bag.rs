@@ -98,7 +98,7 @@ impl Category {
     /// True if the items in this category have no use in the pbirch simulation.
     pub fn unused(self) -> bool {
         match self.repr() {
-            2 | 8 | 9 | 11 | 14 | 16 | 20 ... 26 | 32 ... 34 | 36 | 39 ... 41
+            2 | 8 | 9 | 11 | 14 | 16 | 20 ..= 26 | 32 ..= 34 | 36 | 39 ..= 41
                 | 43  => true,
             _ => false,
         }
@@ -107,14 +107,14 @@ impl Category {
     /// Get the bag pocket in which items of this category are stored.
     pub fn pocket(self) -> Pocket {
         match self.repr() {
-            9 ... 19 | 24 | 32 | 35 | 36 | 42 => Pocket::Misc,
-            26 ... 30 => Pocket::Medicine,
+            9 ..= 19 | 24 | 32 | 35 | 36 | 42 => Pocket::Misc,
+            26 ..= 30 => Pocket::Medicine,
             33 | 34 | 39 => Pocket::Pokeballs,
             37 => Pocket::Machines,
-            2 ... 8 => Pocket::Berries,
+            2 ..= 8 => Pocket::Berries,
             25 => Pocket::Mail,
             1 | 38 | 43 => Pocket::Battle,
-            20 ... 23 | 40 | 41 => Pocket::Key,
+            20 ..= 23 | 40 | 41 => Pocket::Key,
             _ => unreachable!(),
         }
     }

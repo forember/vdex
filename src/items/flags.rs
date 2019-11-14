@@ -36,7 +36,7 @@ impl FromVeekun for Flags {
 
     fn from_veekun(value: u8) -> Option<Self> {
         match value {
-            1 ... 8 => Flags::from_bits(1 << (value - 1)),
+            1 ..= 8 => Flags::from_bits(1 << (value - 1)),
             _ => None,
         }
     }

@@ -87,7 +87,7 @@ impl Ailment {
     /// True if the ailment does not persist on switching out.
     pub fn volatile(self) -> bool {
         match self.repr() {
-            1 ... 5 => false,
+            1 ..= 5 => false,
             _ => true,
         }
     }
