@@ -143,7 +143,7 @@ impl FromVeekun for Target {
 /// The total number of moves in pbirch.
 pub const MOVE_COUNT: usize = 559;
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
 pub struct MoveId(pub u16);
 
 impl Default for MoveId {
@@ -172,6 +172,8 @@ impl FromVeekun for MoveId {
 /// > battle, a Pokémon uses one move each turn.
 #[derive(Clone, Debug, Default)]
 pub struct Move {
+    /// The pbirch id for the move.
+    pub id: MoveId,
     /// The pbirch name for the move.
     pub name: String,
     /// The generation the move was introduced.
@@ -239,6 +241,7 @@ impl vcsv::FromCsvIncremental for MoveTable {
         let accuracy: VeekunOption<_> = vcsv::from_field(&record, 6)?;
         let effect_chance: VeekunOption<_> = vcsv::from_field(&record, 11)?;
         self[id] = Move {
+            id,
             name: to_pascal_case(vcsv::get_field(&record, 1)?),
             generation: vcsv::from_field(&record, 2)?,
             typ: vcsv::from_field(&record, 3)?,

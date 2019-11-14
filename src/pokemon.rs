@@ -75,6 +75,8 @@ impl FromVeekun for EvolutionTrigger {
     }
 }
 
+/// Gender of a Pokémon.
+///
 /// > [*[From Bulbapedia:]*](https://bulbapedia.bulbagarden.net/wiki/Gender) The
 /// > gender (Japanese: 性別 sex) of a Pokémon is a concept introduced in
 /// > Generation II, though touched upon in Generation I. In Gold and Silver
@@ -132,6 +134,10 @@ impl<T: Copy> OneOrTwo<T> {
             OneOrTwo::Two(_, t) => Some(t),
         }
     }
+
+    pub fn contains(self, x: T) -> bool where T: PartialEq<T> {
+        self.first() == x || self.second().map_or(false, |y| y == x)
+    }
 }
 
 impl<T: Copy + Default> Default for OneOrTwo<T> {
@@ -141,7 +147,7 @@ impl<T: Copy + Default> Default for OneOrTwo<T> {
 /// The total number of Pokémon in pbirch.
 pub const POKEMON_COUNT: usize = 673;
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
 pub struct PokemonId(pub u16);
 
 impl Default for PokemonId {
@@ -433,7 +439,7 @@ impl std::ops::IndexMut<PokemonId> for TypeTable {
 /// The total number of Pokémon species in pbirch.
 pub const SPECIES_COUNT: usize = 649;
 
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, Ord, PartialOrd)]
 pub struct SpeciesId(pub u16);
 
 impl Default for SpeciesId {
@@ -652,8 +658,10 @@ impl std::ops::Index<SpeciesId> for EvolutionTable {
 
 #[derive(Clone, Debug, Default)]
 pub struct Species {
+    pub id: SpeciesId,
     pub name: String,
     pub generation: Generation,
+    pub gender_rate: i8,
     pub pokemon: Vec<Pokemon>,
     pub egg_groups: OneOrTwo<EggGroup>,
     pub evolves_from: Option<EvolvesFrom>,
@@ -677,8 +685,11 @@ impl vcsv::FromCsvIncremental for SpeciesTable {
         let id: SpeciesId = vcsv::from_field(&record, 0)?;
         let identifier: VeekunString = vcsv::from_field(&record, 1)?;
         let generation = vcsv::from_field(&record, 2)?;
+        let gender_rate = vcsv::from_field(&record, 8)?;
+        self[id].id = id;
         self[id].name = to_pascal_case(identifier.as_str());
         self[id].generation = generation;
+        self[id].gender_rate = gender_rate;
         if let VeekunOption(Some(from_id)) = vcsv::from_field(&record, 3)? {
             self[id].evolves_from = Some(EvolvesFrom {
                 from_id,
